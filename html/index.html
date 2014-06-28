@@ -1,0 +1,43 @@
+<html class="full-height">
+  <head>
+    <title>Go Guestbook</title>
+    <link href="//fonts.googleapis.com/css?family=Lato:100,400,700|Playfair+Display:700,400,400italic|Source+Code+Pro" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+  </head>
+  <body class="full-height">
+    <table class="full-width full-height">
+      <tr class="sans text-xs right">
+        <td colspan="3" style="height: 20px">
+          <a class="phm" href="?history">History</a>
+          <a class="phm" href="{{.LogoutUrl}}">Log out</a>
+          <button class="button phm mhm" id="edit">Edit</button>
+          <button class="button phm mhm" id="save" style="display: none">Save</button>
+        </td>
+      </tr>
+      <tr>
+        <td id="navCol" class="top quarter-width">
+          <ul class="mah">
+          {{range .Pages}}
+            <li><a href="{{.}}">{{.}}</a></li>
+          {{end}}
+          </ul>
+        </td>
+        <td class="top half-width">
+          <div class="pam" id="content">
+            {{.Html}}
+          </div>
+        </td>
+        <td id="editorCol" class="top">
+          <div class="pvm full-height">
+            <pre id="editor" class="block full-height full-width" style="display: none">{{.Text}}</pre>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <script src="/js/ajax.js"></script>
+    <script src="/js/ace/ace.js"></script>
+    <script src="/js/ace/keybinding-vim.js"></script>
+    <script src="/js/ace/keybinding-emacs.js"></script>
+    <script src="/js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+/* Reset */
+a { text-decoration: none; }
+html, body, form, ul, ol, li { margin: 0; padding: 0; }
+
+/* Spacing */
+.mts,.mvs,.mas{margin-top:8px}.mrs,.mhs,.mas{margin-right:8px}.mbs,.mvs,.mas{margin-bottom:8px}.mls,.mhs,.mas{margin-left:8px}.pts,.pvs,.pas,.textarea{padding-top:8px}.prs,.phs,.pas,.pill-button,.white-pill-button{padding-right:8px}.pbs,.pvs,.pas,.textarea{padding-bottom:8px}.pls,.phs,.pas,.pill-button,.white-pill-button,.input{padding-left:8px}.mtm,.mvm,.mam{margin-top:16px}.mrm,.mhm,.mam{margin-right:16px}.mbm,.mvm,.mam{margin-bottom:16px}.mlm,.mhm,.mam{margin-left:16px}.ptm,.pvm,.pam{padding-top:16px}.prm,.phm,.pam,.form-element,.input,.placeholder,.button,.textarea{padding-right:16px}.pbm,.pvm,.pam{padding-bottom:16px}.plm,.phm,.pam,.form-element,.input,.placeholder,.button,.textarea{padding-left:16px}.mtl,.mvl,.mal{margin-top:32px}.mrl,.mhl,.mal{margin-right:32px}.mbl,.mvl,.mal{margin-bottom:32px}.mll,.mhl,.mal{margin-left:32px}.ptl,.pvl,.pal{padding-top:32px}.prl,.phl,.pal{padding-right:32px}.pbl,.pvl,.pal{padding-bottom:32px}.pll,.phl,.pal{padding-left:32px}.mth,.mvh,.mah{margin-top:64px}.mrh,.mhh,.mah{margin-right:64px}.mbh,.mvh,.mah{margin-bottom:64px}.mlh,.mhh,.mah{margin-left:64px}.pth,.pvh,.pah{padding-top:64px}.prh,.phh,.pah{padding-right:64px}.pbh,.pvh,.pah{padding-bottom:64px}.plh,.phh,.pah{padding-left:64px}
+
+/* Layout */
+
+html .abs { position: absolute; }
+.block { display: block; }
+.ib { display: inline-block; }
+.top { vertical-align: top; }
+.mid { vertical-align: middle; }
+.top-left { top: 0; left: 0; }
+.top-right { top: 0; right: 0; }
+.bottom-left { bottom: 0; left: 0; }
+.bottom-right { bottom: 0; right: 0; }
+.full-height { height: 100%; }
+.full-width { width: 100%; }
+.half-width { width: 50%; }
+.quarter-width { width: 25%; }
+
+/* Typography */
+html, table, .serif { font-family: 'Playfair Display', sans-serif; font-size: 16px; line-height: 24px; }
+.sans { font-family: 'Lato', sans-serif; }
+#editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 92%; }
+
+.right { text-align: right; }
+.center { text-align: center; }
+
+.text-xs { font-size: 12px; line-height: 20px; }
+
+/* Colors */
+a, .blue { color: #3cf; }
+
+
+h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+h1 { font-size: 46px; line-height: 48px; margin: 48px 0 24px; }
+h2 { font-size: 36px; line-height: 48px; margin: 48px 0 24px; }
+h3 { font-size: 28px; line-height: 36px; margin: 36px 0 24px; }
+h4 { font-size: 24px; line-height: 36px; margin: 36px 0 24px; }
+h5 { font-size: 18px; line-height: 24px; margin: 24px 0 12px; }
+h6 { font-size: 16px; line-height: 24px; margin: 24px 0 12px; }
+
+ul ul, ul ol, ol ul, ol ol { margin-left: 20px; }
+
+#content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 2px; }
+#content pre { padding: 6px; }
