@@ -20,7 +20,7 @@ type NavLink struct {
 
 const key = "sitemap"
 
-func Get(c appengine.Context) ([]NavLink, error) {
+func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
   cached, err := cache.Get(c, key)
   if err != nil { return nil, err }
   var paths []string
@@ -45,7 +45,7 @@ func Get(c appengine.Context) ([]NavLink, error) {
     nav = append(nav, NavLink{
       path,
       title,
-      false,
+      path == currentPath,
       depth * 10,
     })
   }

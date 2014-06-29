@@ -1,7 +1,7 @@
 <html class="full-height">
   <head>
-    <title>Go Guestbook</title>
-    <link href="//fonts.googleapis.com/css?family=Lato:400|Source+Serif+Pro:700,700italic,400,400italic|Source+Code+Pro" rel="stylesheet" type="text/css" />
+    <title>Godown</title>
+    <link href="//fonts.googleapis.com/css?family=Lato:400,700|Source+Serif+Pro:700,700italic,400,400italic|Source+Code+Pro" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
   </head>
   <body class="full-height">
@@ -13,7 +13,7 @@
     <div id="navCol" class="top left fixed quarter-width scroll">
       <ul class="mvh mhm no-list sans text-xs">
       {{range .Nav}}
-        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}">{{.Title}}</a></li>
+        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}"{{if .Active}} class="b black"{{end}}>{{.Title}}</a></li>
       {{end}}
       </ul>
     </div>

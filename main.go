@@ -68,7 +68,7 @@ func root(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nav, err := sitemap.Get(c)
+	nav, err := sitemap.Get(c, r.URL.Path)
 	if (err != nil) {
 		errorPage(w, err)
 		return

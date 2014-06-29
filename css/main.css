@@ -29,6 +29,7 @@ html .abs { position: absolute; }
 html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; line-height: 24px; }
 .sans { font-family: 'Lato', sans-serif; }
 #editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 90%; }
+.b { font-weight: bold; }
 
 .left-align { text-align: left; }
 .right-align { text-align: right; }
@@ -43,6 +44,8 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
 
 /* Colors */
 a, .blue { color: #3cf; }
+html { background: #fff; }
+html, .black { color: #333; }
 
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }
