@@ -37,7 +37,7 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := appengine.NewContext(r)
-	pages, err := sitemap.Get(c)
+	nav, err := sitemap.Get(c)
 	if (err != nil) {
 		errorPage(w, err)
 		return
@@ -56,8 +56,8 @@ func root(w http.ResponseWriter, r *http.Request) {
 		Html template.HTML
 		CurrentUrl string
 		LogoutUrl string
-		Pages []string
-	} {text, html, r.URL.Path, logout, pages}
+		Nav []sitemap.NavLink
+	} {text, html, r.URL.Path, logout, nav}
 
 	err = pageTemplate.Execute(w, data)
 	if err != nil {

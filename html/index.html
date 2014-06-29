@@ -11,9 +11,9 @@
       </div>
     </div>
     <div id="navCol" class="top left fixed quarter-width scroll">
-      <ul class="mvh mhl no-list sans text-xs">
-      {{range .Pages}}
-        <li><a href="{{.}}">{{.}}</a></li>
+      <ul class="mvh mhm no-list sans text-xs">
+      {{range .Nav}}
+        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}">{{.Title}}</a></li>
       {{end}}
       </ul>
     </div>

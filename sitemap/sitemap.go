@@ -11,9 +11,16 @@ type Page struct {
   Path string
 }
 
+type NavLink struct {
+  Path string
+  Title string
+  Active bool
+  Depth int
+}
+
 const key = "sitemap"
 
-func Get(c appengine.Context) ([]string, error) {
+func Get(c appengine.Context) ([]NavLink, error) {
   cached, err := cache.Get(c, key)
   if err != nil { return nil, err }
   var paths []string
@@ -25,7 +32,24 @@ func Get(c appengine.Context) ([]string, error) {
   } else {
     paths = strings.Split(string(cached), ",")
   }
-  return paths, nil
+
+  nav := []NavLink{}
+  for _, path := range paths {
+    bits := strings.Split(path, "/")
+    depth := len(bits)
+    title := bits[len(bits) - 1]
+    if title == "" {
+      title = "home"
+      depth--
+    }
+    nav = append(nav, NavLink{
+      path,
+      title,
+      false,
+      depth * 10,
+    })
+  }
+  return nav, nil
 }
 
 func Add(c appengine.Context, path string) error {
