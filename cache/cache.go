@@ -3,43 +3,32 @@ package cache
 import (
   "appengine"
   "appengine/memcache"
-  "encoding/json"
 )
 
-func CreateGetter(key string, fetch func(appengine.Context) (interface{}, error)) func(appengine.Context, *interface{}) error {
-  return func(c appengine.Context, dest *interface{}) error {
-    cache, err := getCache(c, key)
-    if (err != nil || cache == nil) {
-      if (err != memcache.ErrCacheMiss) { return err }
-      c.Infof("Cache miss: %v", key)
-      res, err := fetch(c)
-      if (err != nil) { return err }
-      str, err := json.Marshal(res)
-      if (err != nil) { return err }
-      c.Infof("Cacheing: %v, %v", key, string(str))
-      err = setCache(c, key, str)
-      if err != nil { return err }
-      return nil
-    } else {
-      c.Infof("Cache hit: %v, %v", key, string(cache))
-      err = json.Unmarshal(cache, dest)
-      if err != nil { return err }
-      return nil
-    }
-  }
-}
-
-func getCache(c appengine.Context, key string) ([]byte, error) {
+func Get(c appengine.Context, key string) ([]byte, error) {
   cache, err := memcache.Get(c, key)
-  if (err != nil) {
-    return []byte{}, err
+  if err != nil && err != memcache.ErrCacheMiss { return nil, err }
+  if err != nil || cache == nil {
+    c.Infof("Cache miss: %v", key)
+    return nil, nil
   }
+  c.Infof("Cache hit: %v, %v", key, string(cache.Value))
   return cache.Value, nil
 }
 
-func setCache(c appengine.Context, key string, value []byte) error {
+func Set(c appengine.Context, key string, value []byte) error {
+  c.Infof("Cacheing: %v, %v", key, string(value))
   return memcache.Set(c, &memcache.Item{
     Key: key,
     Value: value,
   })
+}
+
+func Clear(c appengine.Context, key string) error {
+ c.Infof("Clearing cache: %v", key)
+ err := memcache.Delete(c, key)
+ if err != nil && err != memcache.ErrCacheMiss {
+   return err
+ }
+ return nil
 }
