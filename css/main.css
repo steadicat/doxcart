@@ -26,7 +26,7 @@ html .abs { position: absolute; }
 .bb { box-sizing: border-box; }
 
 /* Typography */
-html, table, .serif { font-family: 'Playfair Display', sans-serif; font-size: 16px; line-height: 24px; }
+html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; line-height: 24px; }
 .sans { font-family: 'Lato', sans-serif; }
 #editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 90%; }
 

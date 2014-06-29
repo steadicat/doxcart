@@ -12,4 +12,3 @@ handlers:
   static_dir: js
 - url: /.*
   script: _go_app
-  login: required

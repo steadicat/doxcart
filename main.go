@@ -3,6 +3,7 @@ package main
 import (
 	"runtime"
 	"fmt"
+	"strings"
 	"html/template"
 	"net/http"
 	"encoding/json"
@@ -30,13 +31,43 @@ func errorPage(w http.ResponseWriter, err error) {
 	fmt.Fprintf(w, "Stack of %d bytes: %s\n", count, trace)
 }
 
+var loginTemplate = template.Must(template.ParseFiles("html/login.html"))
+
+func loginPage(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+ 	loginUrl, _ := user.LoginURL(c, r.URL.Path)
+ 	err := loginTemplate.Execute(w, loginUrl)
+ 	if err != nil {
+ 		errorPage(w, err)
+ 		return
+ 	}
+}
+
+var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
+
 func root(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "PUT" {
-		save(w, r)
+	c := appengine.NewContext(r)
+
+	if user.Current(c) == nil {
+		loginPage(w, r)
 		return
 	}
 
-	c := appengine.NewContext(r)
+	domain := strings.Split(user.Current(c).Email, "@")[1]
+
+	c, err := appengine.Namespace(c, domain)
+	if (err != nil) {
+		errorPage(w, err)
+		return
+	}
+	c.Infof("Using namespace: %v", domain)
+
+	if r.Method == "PUT" {
+		save(c, w, r)
+		return
+	}
+
 	nav, err := sitemap.Get(c)
 	if (err != nil) {
 		errorPage(w, err)
@@ -57,18 +88,18 @@ func root(w http.ResponseWriter, r *http.Request) {
 		CurrentUrl string
 		LogoutUrl string
 		Nav []sitemap.NavLink
-	} {text, html, r.URL.Path, logout, nav}
+		User string
+	} {text, html, r.URL.Path, logout, nav, user.Current(c).String()}
 
-	err = pageTemplate.Execute(w, data)
+	err = homeTemplate.Execute(w, data)
 	if err != nil {
 		errorPage(w, err)
 		return
 	}
 }
 
-var pageTemplate = template.Must(template.ParseFiles("html/index.html"))
 
-func save(w http.ResponseWriter, r *http.Request) {
+func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var body struct {
 		Content string
@@ -80,7 +111,6 @@ func save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := appengine.NewContext(r)
 	u := user.Current(c)
 
 	_, html, err := page.Set(c, r.URL.Path, body.Content, u.String())
