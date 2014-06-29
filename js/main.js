@@ -9,7 +9,9 @@ function setStyle(style, value, el) {
 
 var show = setStyle.bind(null, 'display', '');
 var hide = setStyle.bind(null, 'display', 'none');
-var addClass = setAttribute.bind(null, 'class');
+function addClass(cls, el) {
+  setAttribute('class', el.className + ' ' + cls, el);
+}
 function removeClass(cls, el) {
   setAttribute('class', el.className.replace(new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g'), ' '), el);
 }
@@ -18,20 +20,20 @@ var edit = ge('edit');
 var save = ge('save');
 var navCol = ge('navCol');
 var editorCol = ge('editorCol');
+var contentCol = ge('contentCol');
 var content = ge('content');
 
 var handlers = {
   click: {
     edit: function(e) {
-      var editorEl = ge('editor');
       hide(edit);
       show(save);
-      show(editorEl);
+      show(editorCol);
       hide(navCol);
-      addClass('half-width', editorCol);
+      addClass('half-width', contentCol);
+      removeClass('half-width', content);
     },
     save: function(e) {
-      var editorEl = ge('editor');
       ajax.put(window.location.href, {
         content: editor.getValue()
       }, function(res) {
@@ -39,9 +41,10 @@ var handlers = {
       });
       show(edit);
       hide(save);
-      hide(editorEl);
+      hide(editorCol);
       show(navCol);
-      removeClass('half-width', editorCol);
+      removeClass('half-width', contentCol);
+      addClass('half-width', content);
     }
   }
 };
