@@ -20,6 +20,12 @@ type NavLink struct {
 
 const key = "sitemap"
 
+func Format(bit string) string {
+  bit = strings.Join(strings.Split(bit, "_"), " ")
+  bit = strings.Join(strings.Split(bit, "-"), " ")
+  return strings.Title(bit)
+}
+
 func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
   cached, err := cache.Get(c, key)
   if err != nil { return nil, err }
@@ -44,12 +50,21 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
     }
     nav = append(nav, NavLink{
       path,
-      title,
+      Format(title),
       path == currentPath,
       depth * 10,
     })
   }
   return nav, nil
+}
+
+func GetTitle(path string, domain string) string {
+  bits := strings.Split(path, "/")
+  title := bits[len(bits) - 1]
+  if title == "" {
+    return domain
+  }
+  return Format(title)
 }
 
 func Add(c appengine.Context, path string) error {

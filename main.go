@@ -89,7 +89,8 @@ func root(w http.ResponseWriter, r *http.Request) {
 		LogoutUrl string
 		Nav []sitemap.NavLink
 		User string
-	} {text, html, r.URL.Path, logout, nav, user.Current(c).String()}
+		Title string
+	} {text, html, r.URL.Path, logout, nav, user.Current(c).String(), sitemap.GetTitle(r.URL.Path, domain)}
 
 	err = homeTemplate.Execute(w, data)
 	if err != nil {

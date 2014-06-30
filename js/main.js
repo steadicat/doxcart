@@ -22,6 +22,7 @@ var navCol = ge('navCol');
 var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
 var content = ge('content');
+var body = ge('body');
 
 var handlers = {
   click: {
@@ -37,7 +38,7 @@ var handlers = {
       ajax.put(window.location.href, {
         content: editor.getValue()
       }, function(res) {
-        content.innerHTML = JSON.parse(res).Content;
+        body.innerHTML = JSON.parse(res).Content;
       });
       show(edit);
       hide(save);

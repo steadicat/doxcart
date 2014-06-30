@@ -1,19 +1,22 @@
 <html class="full-height">
   <head>
-    <title>Godown</title>
+    <title>{{.Title}}</title>
     <link href="//fonts.googleapis.com/css?family=Lato:400,700|Source+Serif+Pro:700,700italic,400,400italic|Source+Code+Pro" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
   </head>
   <body class="full-height">
     <div id="contentCol" class="top left fixed full-width full-height scroll">
       <div class="pal half-width centered" id="content">
-        {{.Html}}
+        <h1 class="mts">{{.Title}}</h1>
+        <div id="body">
+          {{.Html}}
+        </div>
       </div>
     </div>
     <div id="navCol" class="top left fixed quarter-width scroll">
-      <ul class="mvh mhm no-list sans text-xs">
+      <ul class="mvl ptm mhm no-list sans text-xs">
       {{range .Nav}}
-        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}"{{if .Active}} class="b black"{{end}}>{{.Title}}</a></li>
+        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}" class="{{if .Active}}b{{else}}black{{end}}">{{.Title}}</a></li>
       {{end}}
       </ul>
     </div>
