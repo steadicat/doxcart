@@ -1,6 +1,7 @@
 package sitemap
 
 import (
+  "sort"
   "cache"
   "strings"
   "appengine"
@@ -40,7 +41,7 @@ func pathToNavLink(path string, currentPath string) NavLink {
     path,
     formatTitle(title),
     path == currentPath,
-    depth * 10,
+    (depth - 1) * 10,
   }
 }
 
@@ -73,6 +74,21 @@ func GetTitle(path string, domain string) string {
   return formatTitle(title)
 }
 
+func pathInNav(path string, nav []NavLink) bool {
+  for _, n := range nav {
+    if n.Path == path {
+      return true
+    }
+  }
+  return false
+}
+
+type ByPath []NavLink
+
+func (a ByPath) Len() int           { return len(a) }
+func (a ByPath) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPath) Less(i, j int) bool { return a[i].Path < a[j].Path }
+
 func Add(c appengine.Context, path string) ([]NavLink, error) {
   p := Page{path}
   _, err := datastore.Put(c, datastore.NewKey(c, "Page", path, 0, nil), &p)
@@ -81,9 +97,11 @@ func Add(c appengine.Context, path string) ([]NavLink, error) {
   if err != nil { return []NavLink{}, err }
   err = cache.Clear(c, key)
   if err != nil { return []NavLink{}, err }
-  if (path != "/") {
+
+  if !pathInNav(path, nav) {
     nav = append(nav, pathToNavLink(path, path))
   }
+  sort.Sort(ByPath(nav))
   return nav, nil
 }
 
