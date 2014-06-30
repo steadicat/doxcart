@@ -9,6 +9,7 @@ table { border-collapse: collapse; }
 /* Layout */
 
 html .abs { position: absolute; }
+.rel { position: relative; }
 .fixed { position: fixed; }
 .block { display: block; }
 .ib { display: inline-block; }

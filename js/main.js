@@ -1,5 +1,16 @@
 var ge = document.getElementById.bind(document);
 
+function debounce(f) {
+  var timeout;
+  return function() {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      timeout = null;
+      f();
+    }, 500);
+  }
+}
+
 function setAttribute(attr, value, el) {
   el.setAttribute(attr, value);
 }
@@ -16,6 +27,23 @@ function removeClass(cls, el) {
   setAttribute('class', el.className.replace(new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g'), ' '), el);
 }
 
+var restoreNav;
+
+var doSearch = debounce(function() {
+  if (!search.value) {
+    if (restoreNav) {
+      navCol.innerHTML = restoreNav;
+      restoreNav = null;
+    }
+    return;
+  }
+  ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
+    var doc = JSON.parse(res);
+    if (!restoreNav) restoreNav = navCol.innerHTML;
+    navCol.innerHTML = doc.Nav;
+  });
+});
+
 var edit = ge('edit');
 var save = ge('save');
 var navCol = ge('navCol');
@@ -23,6 +51,7 @@ var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
 var content = ge('content');
 var body = ge('body');
+var search = ge('search');
 
 var handlers = {
   click: {
@@ -52,8 +81,15 @@ var handlers = {
       removeClass('half-width', contentCol);
       addClass('half-width', content);
     }
+  },
+  keyup: {
+    search: doSearch
+  },
+  change: {
+    search: doSearch
   }
 };
+
 
 function handle(event) {
   document.body.addEventListener(event, function(e) {
@@ -95,16 +131,6 @@ marked.setOptions({
   }
 });
 
-function debounce(f) {
-  var timeout;
-  return function() {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(function() {
-      timeout = null;
-      f();
-    }, 500);
-  }
-}
 
 editor.getSession().on('change', debounce(function(e) {
   body.innerHTML = marked(editor.getValue());

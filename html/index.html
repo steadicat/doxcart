@@ -25,12 +25,13 @@
       <pre id="editor" class="block full-height full-width">{{.Text}}</pre>
     </div>
     <div class="fixed top full-width left right-align sans text-xs">
-      <div class="mrm" style="height: 20px; background: rgba(255,255,255,0.9)">
+      <div class="mrm rel" style="height: 20px; background: rgba(255,255,255,0.9)">
+        <input type="search" id="search" class="mls abs top left" placeholder="Search" style="margin-top: 4px" />
         <span class="phs">{{.User}}</span>
         <a class="phs" href="{{.LogoutUrl}}">Log out</a>
         <a class="phs" href="?history">History</a>
-        <a class="pls pointer" id="edit">Edit</a>
-        <a class="pls pointer" id="save" style="display: none">Save</a>
+        <a class="phs pointer" id="edit">Edit</a>
+        <a class="phs pointer" id="save" style="display: none">Save</a>
       </div>
     </div>
     <script src="/js/ajax.js"></script>

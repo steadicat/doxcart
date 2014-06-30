@@ -6,12 +6,13 @@ import (
   "appengine"
   "appengine/datastore"
   "appengine/memcache"
+  "appengine/search"
 )
 
 type PageVersion struct {
   Path string
   Content string `datastore:",noindex"`
-  Html string `datastore:",noindex"`
+  Html search.HTML `datastore:",noindex"`
   Date time.Time
   Author string
 }
@@ -34,7 +35,7 @@ func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
   if len(versions) == 0 {
     return &PageVersion{
       Content: "Type using Markdown...",
-      Html: "Empty page. Click edit to create it.",
+      Html: search.HTML("Empty page. Click edit to create it."),
       Date: time.Now(),
     }, nil
   } else {
@@ -76,14 +77,15 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
     return "", template.HTML(""), err
   }
 
-  cachePageContent(c, path, version.Content, version.Html)
-  return version.Content, template.HTML(version.Html), nil
+  cachePageContent(c, path, version.Content, string(version.Html))
+  return version.Content, template.HTML(string(version.Html)), nil
 }
 
 func Set(c appengine.Context, path string, text string, html string, author string) error {
   version := PageVersion{
+    Path: path,
     Content: text,
-    Html: html,
+    Html: search.HTML(html),
     Date: time.Now(),
     Author: author,
   }
@@ -93,5 +95,12 @@ func Set(c appengine.Context, path string, text string, html string, author stri
   if err != nil { return err }
 
   cachePageContent(c, path, text, html)
+
+  index, err := search.Open("pages")
+  if err != nil { return err }
+  c.Infof("Indexing: %s", path)
+  _, err = index.Put(c, path, &version)
+  if err != nil { return err }
+
   return nil
 }

@@ -17,6 +17,7 @@ import (
 func init() {
 	http.HandleFunc("/favicon.ico", notFound)
 	http.HandleFunc("/robots.txt", notFound)
+	http.HandleFunc("/s", searchHandler)
 	http.HandleFunc("/", root)
 }
 
@@ -47,22 +48,28 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
 
 var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
 
-func root(w http.ResponseWriter, r *http.Request) {
+func auth(w http.ResponseWriter, r *http.Request) (appengine.Context, string, bool) {
 	c := appengine.NewContext(r)
 
 	if user.Current(c) == nil {
 		loginPage(w, r)
-		return
+		return nil, "", true
 	}
 
 	domain := strings.Split(user.Current(c).Email, "@")[1]
-
 	c, err := appengine.Namespace(c, domain)
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
-		return
+		return nil, "", true
 	}
+
 	c.Infof("Using namespace: %v", domain)
+	return c, domain, false
+}
+
+func root(w http.ResponseWriter, r *http.Request) {
+	c, domain, done := auth(w, r);
+	if done == true { return }
 
 	if r.Method == "PUT" {
 		save(c, w, r)
@@ -70,13 +77,13 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nav, err := sitemap.Get(c, r.URL.Path)
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
 		return
 	}
 
 	text, html, err := page.Get(c, r.URL.Path)
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
 		return
 	}
@@ -118,20 +125,20 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	u := user.Current(c)
 
 	err = page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
 		return
 	}
 
 	nav, err := sitemap.Add(c, r.URL.Path)
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
 		return
 	}
 
   var navHtml bytes.Buffer
   err = navTemplate.Execute(&navHtml, nav)
-	if (err != nil) {
+	if err != nil {
 		errorPage(w, err)
 		return
 	}
@@ -140,6 +147,35 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		Ok bool
 		Nav string
 	}{true, navHtml.String()}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(response)
+}
+
+var searchTemplate = template.Must(template.ParseFiles("html/search.html"))
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	c, _, done := auth(w, r);
+	if done == true { return }
+
+	r.ParseForm()
+	results, err := sitemap.Search(c, r.Form["q"][0])
+	if err != nil {
+		errorPage(w, err)
+		return
+	}
+
+  var navHtml bytes.Buffer
+  err = searchTemplate.Execute(&navHtml, results)
+	if err != nil {
+		errorPage(w, err)
+		return
+	}
+
+	response := struct{
+		Ok bool
+		Nav string
+	}{true, navHtml.String()}
+
 	encoder := json.NewEncoder(w)
 	encoder.Encode(response)
 }

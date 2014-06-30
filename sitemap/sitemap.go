@@ -5,6 +5,8 @@ import (
   "strings"
   "appengine"
   "appengine/datastore"
+  "appengine/search"
+  "page"
 )
 
 type Page struct {
@@ -96,4 +98,27 @@ func fetch(c appengine.Context) ([]string, error) {
   }
   c.Infof("Fetched list of paths: %v", paths)
   return paths, nil
+}
+
+func Search(c appengine.Context, query string) ([]NavLink, error) {
+  index, err := search.Open("pages")
+  if err != nil { return []NavLink{}, err }
+
+  var paths []string
+
+  for t := index.Search(c, query, nil); ; {
+    var version page.PageVersion
+    id, err := t.Next(&version)
+    if err == search.Done {
+      break
+    }
+    paths = append(paths, id)
+    if err != nil { return []NavLink{}, err }
+  }
+
+  nav := []NavLink{}
+  for _, path := range paths {
+    nav = append(nav, pathToNavLink(path, "_"))
+  }
+  return nav, nil
 }
