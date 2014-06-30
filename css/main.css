@@ -58,5 +58,6 @@ h6 { font-size: 16px; line-height: 24px; margin: 24px 0 12px; }
 
 ul ul, ul ol, ol ul, ol ol { margin-left: 20px; }
 
-#content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 2px; }
+#content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 3px; border: 1px solid #eee; }
+#content pre code { border: none; }
 #content pre { padding: 6px; overflow: auto; }

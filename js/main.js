@@ -36,9 +36,9 @@ var handlers = {
     },
     save: function(e) {
       ajax.put(window.location.href, {
-        content: editor.getValue()
+        text: editor.getValue(),
+        html: marked(editor.getValue())
       }, function(res) {
-        body.innerHTML = JSON.parse(res).Content;
       });
       show(edit);
       hide(save);
@@ -75,3 +75,32 @@ editor.renderer.setShowGutter(false);
 editor.renderer.setPadding(32);
 editor.session.setUseWrapMode(true);
 editor.session.setTabSize(2);
+
+marked.setOptions({
+  renderer: new marked.Renderer(),
+  gfm: true,
+  tables: true,
+  breaks: false,
+  pedantic: false,
+  sanitize: true,
+  smartLists: true,
+  smartypants: true,
+  highlight: function (code) {
+    return hljs.highlightAuto(code).value;
+  }
+});
+
+function debounce(f) {
+  var timeout;
+  return function() {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      timeout = null;
+      f();
+    }, 500);
+  }
+}
+
+editor.getSession().on('change', debounce(function(e) {
+  body.innerHTML = marked(editor.getValue());
+}));

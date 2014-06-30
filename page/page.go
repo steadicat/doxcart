@@ -2,7 +2,6 @@ package page
 
 import (
   "html/template"
-  "markdown"
   "time"
   "appengine"
   "appengine/datastore"
@@ -12,6 +11,7 @@ import (
 type PageVersion struct {
   Path string
   Content string `datastore:",noindex"`
+  Html string `datastore:",noindex"`
   Date time.Time
   Author string
 }
@@ -75,23 +75,22 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
     return "", template.HTML(""), err
   }
 
-  html := markdown.Markdown(version.Content)
-  cachePageContent(c, path, version.Content, html)
-  return version.Content, template.HTML(html), nil
+  cachePageContent(c, path, version.Content, version.Html)
+  return version.Content, template.HTML(version.Html), nil
 }
 
-func Set(c appengine.Context, path string, text string, author string) (string, string, error) {
+func Set(c appengine.Context, path string, text string, html string, author string) error {
   version := PageVersion{
     Content: text,
+    Html: html,
     Date: time.Now(),
     Author: author,
   }
 
   key := datastore.NewIncompleteKey(c, "PageVersion", pageKey(c, path))
   _, err := datastore.Put(c, key, &version)
-  if err != nil { return "", "", err }
+  if err != nil { return err }
 
-  html := markdown.Markdown(text)
   cachePageContent(c, path, text, html)
-  return text, html, nil
+  return nil
 }

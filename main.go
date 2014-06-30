@@ -99,11 +99,11 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var body struct {
-		Content string
+		Text string
+		Html string
 	}
 
 	err := decoder.Decode(&body)
@@ -114,7 +114,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
 	u := user.Current(c)
 
-	_, html, err := page.Set(c, r.URL.Path, body.Content, u.String())
+	err = page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
 	if (err != nil) {
 		errorPage(w, err)
 		return
@@ -126,7 +126,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body.Content = html;
+	response := struct{ok bool}{true}
 	encoder := json.NewEncoder(w)
-	encoder.Encode(body)
+	encoder.Encode(response)
 }
