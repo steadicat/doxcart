@@ -79,7 +79,9 @@ func Add(c appengine.Context, path string) ([]NavLink, error) {
   if err != nil { return []NavLink{}, err }
   err = cache.Clear(c, key)
   if err != nil { return []NavLink{}, err }
-  nav = append(nav, pathToNavLink(path, path))
+  if (path != "/") {
+    nav = append(nav, pathToNavLink(path, path))
+  }
   return nav, nil
 }
 
