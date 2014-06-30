@@ -35,6 +35,7 @@ var handlers = {
       removeClass('half-width', content);
     },
     save: function(e) {
+      body.innerHTML = marked(editor.getValue());
       ajax.put(window.location.href, {
         text: editor.getValue(),
         html: marked(editor.getValue())
