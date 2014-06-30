@@ -1,6 +1,6 @@
 /* Reset */
 a { text-decoration: none; }
-html, body, form, ul, ol, li, blockquote, table, tr, td { margin: 0; padding: 0; }
+html, body, form, ul, ol, li, blockquote, table, tr, td, p { margin: 0; padding: 0; }
 table { border-collapse: collapse; }
 
 /* Spacing */
@@ -51,19 +51,20 @@ html, .black { color: #333; }
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 h1 { font-size: 46px; line-height: 48px; margin: 48px 0 24px; }
-h2 { font-size: 36px; line-height: 48px; margin: 48px 0 24px; }
-h3 { font-size: 28px; line-height: 36px; margin: 36px 0 24px; }
-h4 { font-size: 24px; line-height: 36px; margin: 36px 0 24px; }
+h2 { font-size: 36px; line-height: 40px; margin: 48px 0 20px; }
+h3 { font-size: 28px; line-height: 36px; margin: 36px 0 18px; }
+h4 { font-size: 24px; line-height: 36px; margin: 36px 0 12px; }
 h5 { font-size: 18px; line-height: 24px; margin: 24px 0 12px; }
 h6 { font-size: 16px; line-height: 24px; margin: 24px 0 12px; }
 
-ul ul, ul ol, ol ul, ol ol { margin-left: 20px; }
+ul, ol { margin-left: 20px; }
 
 #content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 3px; border: 1px solid #eee; }
 #content pre code { border: none; }
-#content pre { padding: 6px; overflow: auto; }
+#content pre { padding: 8px; overflow: auto; }
 
-hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+p, table { margin: 8px 0; }
+hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
 td { border-top: 1px solid #eee; margin: 0; padding: 4px 8px; }
-blockquote { border-left: 4px solid #eee; padding-left: 16px; margin: 16px 0; }
+blockquote { border-left: 3px solid #eee; padding-left: 13px; margin: 16px 0; color: #666; }
 
