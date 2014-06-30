@@ -1,6 +1,7 @@
 /* Reset */
 a { text-decoration: none; }
-html, body, form, ul, ol, li { margin: 0; padding: 0; }
+html, body, form, ul, ol, li, blockquote, table, tr, td { margin: 0; padding: 0; }
+table { border-collapse: collapse; }
 
 /* Spacing */
 .mts,.mvs,.mas{margin-top:8px}.mrs,.mhs,.mas{margin-right:8px}.mbs,.mvs,.mas{margin-bottom:8px}.mls,.mhs,.mas{margin-left:8px}.pts,.pvs,.pas,.textarea{padding-top:8px}.prs,.phs,.pas,.pill-button,.white-pill-button{padding-right:8px}.pbs,.pvs,.pas,.textarea{padding-bottom:8px}.pls,.phs,.pas,.pill-button,.white-pill-button,.input{padding-left:8px}.mtm,.mvm,.mam{margin-top:16px}.mrm,.mhm,.mam{margin-right:16px}.mbm,.mvm,.mam{margin-bottom:16px}.mlm,.mhm,.mam{margin-left:16px}.ptm,.pvm,.pam{padding-top:16px}.prm,.phm,.pam,.form-element,.input,.placeholder,.button,.textarea{padding-right:16px}.pbm,.pvm,.pam{padding-bottom:16px}.plm,.phm,.pam,.form-element,.input,.placeholder,.button,.textarea{padding-left:16px}.mtl,.mvl,.mal{margin-top:32px}.mrl,.mhl,.mal{margin-right:32px}.mbl,.mvl,.mal{margin-bottom:32px}.mll,.mhl,.mal{margin-left:32px}.ptl,.pvl,.pal{padding-top:32px}.prl,.phl,.pal{padding-right:32px}.pbl,.pvl,.pal{padding-bottom:32px}.pll,.phl,.pal{padding-left:32px}.mth,.mvh,.mah{margin-top:64px}.mrh,.mhh,.mah{margin-right:64px}.mbh,.mvh,.mah{margin-bottom:64px}.mlh,.mhh,.mah{margin-left:64px}.pth,.pvh,.pah{padding-top:64px}.prh,.phh,.pah{padding-right:64px}.pbh,.pvh,.pah{padding-bottom:64px}.plh,.phh,.pah{padding-left:64px}
@@ -27,7 +28,7 @@ html .abs { position: absolute; }
 
 /* Typography */
 html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; line-height: 24px; }
-.sans { font-family: 'Lato', sans-serif; }
+.sans, table { font-size: 14px; font-family: 'Lato', sans-serif; }
 #editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 90%; }
 .b { font-weight: bold; }
 
@@ -61,3 +62,8 @@ ul ul, ul ol, ol ul, ol ol { margin-left: 20px; }
 #content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 3px; border: 1px solid #eee; }
 #content pre code { border: none; }
 #content pre { padding: 6px; overflow: auto; }
+
+hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+td { border-top: 1px solid #eee; margin: 0; padding: 4px 8px; }
+blockquote { border-left: 4px solid #eee; padding-left: 16px; margin: 16px 0; }
+
