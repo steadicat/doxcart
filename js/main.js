@@ -40,6 +40,10 @@ var handlers = {
         text: editor.getValue(),
         html: marked(editor.getValue())
       }, function(res) {
+        var doc = JSON.parse(res);
+        if (doc.Nav) {
+          navCol.innerHTML = doc.Nav;
+        }
       });
       show(edit);
       hide(save);

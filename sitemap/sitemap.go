@@ -20,10 +20,26 @@ type NavLink struct {
 
 const key = "sitemap"
 
-func Format(bit string) string {
+func formatTitle(bit string) string {
   bit = strings.Join(strings.Split(bit, "_"), " ")
   bit = strings.Join(strings.Split(bit, "-"), " ")
   return strings.Title(bit)
+}
+
+func pathToNavLink(path string, currentPath string) NavLink {
+  bits := strings.Split(path, "/")
+  depth := len(bits)
+  title := bits[len(bits) - 1]
+  if title == "" {
+    title = "home"
+    depth--
+  }
+  return NavLink{
+    path,
+    formatTitle(title),
+    path == currentPath,
+    depth * 10,
+  }
 }
 
 func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
@@ -41,19 +57,7 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
 
   nav := []NavLink{}
   for _, path := range paths {
-    bits := strings.Split(path, "/")
-    depth := len(bits)
-    title := bits[len(bits) - 1]
-    if title == "" {
-      title = "home"
-      depth--
-    }
-    nav = append(nav, NavLink{
-      path,
-      Format(title),
-      path == currentPath,
-      depth * 10,
-    })
+    nav = append(nav, pathToNavLink(path, currentPath))
   }
   return nav, nil
 }
@@ -64,14 +68,19 @@ func GetTitle(path string, domain string) string {
   if title == "" {
     return domain
   }
-  return Format(title)
+  return formatTitle(title)
 }
 
-func Add(c appengine.Context, path string) error {
+func Add(c appengine.Context, path string) ([]NavLink, error) {
   p := Page{path}
   _, err := datastore.Put(c, datastore.NewKey(c, "Page", path, 0, nil), &p)
-  if err != nil { return err }
-  return cache.Clear(c, key)
+  if err != nil { return []NavLink{}, err }
+  nav, err := Get(c, path)
+  if err != nil { return []NavLink{}, err }
+  err = cache.Clear(c, key)
+  if err != nil { return []NavLink{}, err }
+  nav = append(nav, pathToNavLink(path, path))
+  return nav, nil
 }
 
 func fetch(c appengine.Context) ([]string, error) {

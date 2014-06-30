@@ -33,7 +33,8 @@ func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
 
   if len(versions) == 0 {
     return &PageVersion{
-      Content: "Empty page.",
+      Content: "Type using Markdown...",
+      Html: "Empty page. Click edit to create it.",
       Date: time.Now(),
     }, nil
   } else {

@@ -4,6 +4,7 @@ import (
 	"runtime"
 	"fmt"
 	"strings"
+	"bytes"
 	"html/template"
 	"net/http"
 	"encoding/json"
@@ -99,6 +100,8 @@ func root(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var navTemplate = template.Must(template.ParseFiles("html/nav.html"))
+
 func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var body struct {
@@ -120,13 +123,23 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sitemap.Add(c, r.URL.Path)
+	nav, err := sitemap.Add(c, r.URL.Path)
 	if (err != nil) {
 		errorPage(w, err)
 		return
 	}
 
-	response := struct{ok bool}{true}
+  var navHtml bytes.Buffer
+  err = navTemplate.Execute(&navHtml, nav)
+	if (err != nil) {
+		errorPage(w, err)
+		return
+	}
+
+	response := struct{
+		Ok bool
+		Nav string
+	}{true, navHtml.String()}
 	encoder := json.NewEncoder(w)
 	encoder.Encode(response)
 }
