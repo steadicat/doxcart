@@ -46,6 +46,7 @@ var doSearch = debounce(function() {
 
 var edit = ge('edit');
 var save = ge('save');
+var cancel = ge('cancel');
 var navCol = ge('navCol');
 var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
@@ -56,10 +57,13 @@ var search = ge('search');
 var handlers = {
   click: {
     edit: function(e) {
+      search.value = '';
+      doSearch();
       hide(edit);
-      show(save);
+      show(cancel);
       show(editorCol);
       hide(navCol);
+      hide(search);
       addClass('half-width', contentCol);
       removeClass('half-width', content);
     },
@@ -78,6 +82,16 @@ var handlers = {
       hide(save);
       hide(editorCol);
       show(navCol);
+      show(search);
+      removeClass('half-width', contentCol);
+      addClass('half-width', content);
+    },
+    cancel: function() {
+      show(edit);
+      hide(cancel);
+      hide(editorCol);
+      show(navCol);
+      show(search);
       removeClass('half-width', contentCol);
       addClass('half-width', content);
     }
@@ -133,5 +147,7 @@ marked.setOptions({
 
 
 editor.getSession().on('change', debounce(function(e) {
+  hide(cancel);
+  show(save);
   body.innerHTML = marked(editor.getValue());
 }));
