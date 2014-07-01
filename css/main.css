@@ -9,7 +9,6 @@ table { border-collapse: collapse; }
 /* Layout */
 
 html .abs { position: absolute; }
-.rel { position: relative; }
 .fixed { position: fixed; }
 .block { display: block; }
 .ib { display: inline-block; }
@@ -44,10 +43,19 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
 /* UI */
 .pointer { cursor: pointer; }
 
+/* Buttons */
+.button { border: 2px solid #3be; color: #3be; background: #fff; border-radius: 3px; outline: none; }
+
+/* Borders */
+.border-bottom { border-bottom: 1px solid; }
+.border-left { border-left: 1px solid; }
+
 /* Colors */
-a, .blue { color: #3cf; }
+a, .blue { color: #3be; }
 html { background: #fff; }
 html, .black { color: #333; }
+.border-gray { border-color: #eee; }
+
 
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }
@@ -68,4 +76,3 @@ p, table { margin: 8px 0; }
 hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
 td { border-top: 1px solid #eee; margin: 0; padding: 4px 8px; }
 blockquote { border-left: 3px solid #eee; padding-left: 13px; margin: 16px 0; color: #666; }
-

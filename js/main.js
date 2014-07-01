@@ -32,15 +32,15 @@ var restoreNav;
 var doSearch = debounce(function() {
   if (!search.value) {
     if (restoreNav) {
-      navCol.innerHTML = restoreNav;
+      navList.innerHTML = restoreNav;
       restoreNav = null;
     }
     return;
   }
   ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
     var doc = JSON.parse(res);
-    if (!restoreNav) restoreNav = navCol.innerHTML;
-    navCol.innerHTML = doc.Nav;
+    if (!restoreNav) restoreNav = navList.innerHTML;
+    navList.innerHTML = doc.Nav;
   });
 });
 
@@ -48,6 +48,7 @@ var edit = ge('edit');
 var save = ge('save');
 var cancel = ge('cancel');
 var navCol = ge('navCol');
+var navList = ge('navList');
 var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
 var content = ge('content');
@@ -63,7 +64,6 @@ var handlers = {
       show(cancel);
       show(editorCol);
       hide(navCol);
-      hide(search);
       addClass('half-width', contentCol);
       removeClass('half-width', content);
     },
@@ -75,14 +75,13 @@ var handlers = {
       }, function(res) {
         var doc = JSON.parse(res);
         if (doc.Nav) {
-          navCol.innerHTML = doc.Nav;
+          navList.innerHTML = doc.Nav;
         }
       });
       show(edit);
       hide(save);
       hide(editorCol);
       show(navCol);
-      show(search);
       removeClass('half-width', contentCol);
       addClass('half-width', content);
     },
@@ -91,7 +90,6 @@ var handlers = {
       hide(cancel);
       hide(editorCol);
       show(navCol);
-      show(search);
       removeClass('half-width', contentCol);
       addClass('half-width', content);
     }

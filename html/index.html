@@ -14,25 +14,32 @@
         </div>
       </div>
     </div>
-    <div id="navCol" class="top left fixed quarter-width scroll">
-      <ul class="mvl ptm mhm no-list sans text-xs">
-      {{range .Nav}}
-        <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}" class="{{if .Active}}b{{else}}black{{end}}">{{.Title}}</a></li>
-      {{end}}
-      </ul>
+    <div id="navCol" class="top left fixed quarter-width scroll pam text-xs sans">
+      <img src="{{.Gravatar}}" class="ib mid" style="width: 30px; height: 30px; border-radius: 15px; margin-top: 1px" />
+      <div class="ib mid pls" style="line-height: 14px">
+        <div>{{.User}}</div>
+        <a href="{{.LogoutUrl}}">Log out</a>
+      </div>
+      <input type="search" id="search" class="mtl half-width bb" placeholder="Search" />
+      <div id="navList">
+        <ul class="mtm mhs no-list">
+        {{range .Nav}}
+          <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}" class="{{if .Active}}b{{else}}black{{end}}">{{.Title}}</a></li>
+        {{end}}
+        </ul>
+      </div>
     </div>
-    <div id="editorCol" class="top fixed top right half-width full-height ptl bb"  style="display: none">
+    <div id="editorCol" class="top fixed top right half-width full-height ptl bb border-left border-gray"  style="display: none">
       <pre id="editor" class="block full-height full-width">{{.Text}}</pre>
     </div>
-    <div class="fixed top full-width left right-align sans text-xs">
-      <div class="mrm rel" style="height: 20px; background: rgba(255,255,255,0.9)">
-        <input type="search" id="search" class="mls abs top left" placeholder="Search" style="margin-top: 4px" />
-        <span class="phs">{{.User}}</span>
-        <a class="phs" href="{{.LogoutUrl}}">Log out</a>
-        <a class="phs" href="?history">History</a>
-        <a class="phs pointer" id="edit">Edit</a>
-        <a class="phs pointer" id="cancel" style="display: none">Cancel</a>
-        <a class="phs pointer" id="save" style="display: none">Save</a>
+    <div class="fixed top full-width left sans text-xs">
+      <div class="mrm phs rel">
+        <div class="abs top right mrm" style="margin-top: 2px">
+          <a class="phs" href="?history">History</a>
+          <button class="phs button pointer" id="edit">Edit</button>
+          <button class="phs button pointer" id="cancel" style="display: none">Cancel</button>
+          <button class="phs button pointer" id="save" style="display: none">Save</button>
+        </div>
       </div>
     </div>
     <script src="/js/ajax.js"></script>
