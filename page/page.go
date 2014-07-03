@@ -7,6 +7,7 @@ import (
   "appengine/datastore"
   "appengine/memcache"
   "appengine/search"
+  "backup"
 )
 
 type PageVersion struct {
@@ -100,6 +101,9 @@ func Set(c appengine.Context, path string, text string, html string, author stri
   if err != nil { return err }
   c.Infof("Indexing: %s", path)
   _, err = index.Put(c, path, &version)
+  if err != nil { return err }
+
+  err = backup.SaveFile(c, path, text)
   if err != nil { return err }
 
   return nil

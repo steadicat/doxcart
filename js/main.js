@@ -1,5 +1,30 @@
 var ge = document.getElementById.bind(document);
 
+function getCookies() {
+  var c = document.cookie, v = 0, cookies = {};
+  if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
+    c = RegExp.$1;
+    v = 1;
+  }
+  if (v === 0) {
+    c.split(/[,;]/).map(function(cookie) {
+      var parts = cookie.split(/=/, 2),
+      name = decodeURIComponent(parts[0].trimLeft()),
+      value = parts.length > 1 ? decodeURIComponent(parts[1].trimRight()) : null;
+      cookies[name] = value;
+    });
+  } else {
+    c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function($0, $1) {
+      var name = $0,
+      value = $1.charAt(0) === '"'
+        ? $1.substr(1, -1).replace(/\\(.)/g, "$1")
+        : $1;
+      cookies[name] = value;
+    });
+  }
+  return cookies;
+}
+
 function debounce(f) {
   var timeout;
   return function() {
@@ -45,6 +70,7 @@ var doSearch = debounce(function() {
 });
 
 var edit = ge('edit');
+var editing = ge('editing');
 var save = ge('save');
 var cancel = ge('cancel');
 var navCol = ge('navCol');
@@ -54,6 +80,9 @@ var contentCol = ge('contentCol');
 var content = ge('content');
 var body = ge('body');
 var search = ge('search');
+var emacs = ge('emacs');
+var vim = ge('vim');
+var reset = ge('reset');
 
 var handlers = {
   click: {
@@ -61,6 +90,7 @@ var handlers = {
       search.value = '';
       doSearch();
       hide(edit);
+      show(editing);
       show(cancel);
       show(editorCol);
       hide(navCol);
@@ -79,6 +109,7 @@ var handlers = {
         }
       });
       show(edit);
+      hide(editing);
       hide(save);
       hide(editorCol);
       show(navCol);
@@ -87,12 +118,16 @@ var handlers = {
     },
     cancel: function() {
       show(edit);
+      hide(editing);
       hide(cancel);
       hide(editorCol);
       show(navCol);
       removeClass('half-width', contentCol);
       addClass('half-width', content);
-    }
+    },
+    emacs: setKeysEmacs,
+    vim: setKeysVim,
+    reset: setKeysNone
   },
   keyup: {
     search: doSearch
@@ -128,6 +163,37 @@ editor.renderer.setShowGutter(false);
 editor.renderer.setPadding(32);
 editor.session.setUseWrapMode(true);
 editor.session.setTabSize(2);
+
+function setKeysEmacs() {
+  hide(emacs);
+  hide(vim);
+  show(reset);
+  document.cookie = 'keys=emacs';
+  editor.setKeyboardHandler(ace.require("ace/keyboard/emacs").handler);
+}
+
+function setKeysVim() {
+  hide(emacs);
+  hide(vim);
+  show(reset);
+  document.cookie = 'keys=vim';
+  editor.setKeyboardHandler(ace.require("ace/keyboard/vim").handler);
+}
+
+function setKeysNone() {
+  show(emacs);
+  show(vim);
+  hide(reset);
+  document.cookie = 'keys=';
+  editor.setKeyboardHandler(null);
+}
+
+var cookies = getCookies();
+if (cookies.keys == 'emacs') {
+  setKeysEmacs();
+} else if (cookies.keys == 'vim') {
+  setKeysVim();
+}
 
 marked.setOptions({
   renderer: new marked.Renderer(),

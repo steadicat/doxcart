@@ -16,6 +16,13 @@
     </div>
     <div id="navCol" class="top left fixed full-height quarter-width scroll text-xs sans">
       <div class="abs bottom left pam">
+        <div class="mbl">
+          {{ if .Dropbox }}
+            <a href="/_/dropbox/disconnect">Disable Dropbox Sync</a>
+          {{ else }}
+            <a href="/_/dropbox">Enable Dropbox Sync</a>
+          {{end}}
+        </div>
         <img src="{{.Gravatar}}" class="ib mid" style="width: 30px; height: 30px; border-radius: 15px; margin-top: 1px" />
         <div class="ib mid pls" style="line-height: 14px">
           <div>{{.User}}</div>
@@ -41,8 +48,13 @@
         <div class="abs top right mrm mts">
           <a class="phs" href="?history">History</a>
           <button class="phs button pointer" id="edit">Edit</button>
-          <button class="phs button pointer" id="cancel" style="display: none">Cancel</button>
-          <button class="phs button pointer" id="save" style="display: none">Save</button>
+          <span id="editing" style="display: none">
+            <a class="phs pointer" id="emacs">Emacs</a>
+            <a class="phs pointer" id="vim">VIM</a>
+            <a class="phs pointer" id="reset" style="display: none">Reset Keys</a>
+            <button class="phs mls button pointer" id="cancel" style="display: none">Cancel</button>
+            <button class="phs mls button pointer" id="save" style="display: none">Save</button>
+          </span>
         </div>
       </div>
     </div>

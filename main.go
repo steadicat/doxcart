@@ -1,75 +1,34 @@
 package main
 
 import (
-  "runtime"
   "fmt"
-  "strings"
   "bytes"
   "html/template"
   "net/http"
   "encoding/json"
   "appengine"
   "appengine/user"
-  "sitemap"
   "page"
+  "web"
+  "sitemap"
+  "backup"
   "crypto/md5"
 )
 
 func init() {
-  http.HandleFunc("/favicon.ico", notFound)
-  http.HandleFunc("/robots.txt", notFound)
+  http.HandleFunc("/favicon.ico", web.NotFound)
+  http.HandleFunc("/robots.txt", web.NotFound)
   http.HandleFunc("/s", searchHandler)
+  http.HandleFunc("/_/dropbox", backup.DropboxHandler)
+  http.HandleFunc("/_/dropbox/oauth", backup.DropboxOauthHandler)
+  http.HandleFunc("/_/dropbox/disconnect", backup.DropboxDisconnectHandler)
   http.HandleFunc("/", root)
-}
-
-func notFound(w http.ResponseWriter, r *http.Request) {
-  http.Error(w, "Not found", 404)
-}
-
-func errorPage(w http.ResponseWriter, err error) {
-  trace := make([]byte, 1024)
-  count := runtime.Stack(trace, true)
-  http.Error(w, err.Error(), http.StatusInternalServerError)
-  fmt.Fprintf(w, "Recover from panic: %s\n", err)
-  fmt.Fprintf(w, "Stack of %d bytes: %s\n", count, trace)
-}
-
-var loginTemplate = template.Must(template.ParseFiles("html/login.html"))
-
-func loginPage(w http.ResponseWriter, r *http.Request) {
-  c := appengine.NewContext(r)
-
-   loginUrl, _ := user.LoginURL(c, r.URL.Path)
-   err := loginTemplate.Execute(w, loginUrl)
-   if err != nil {
-     errorPage(w, err)
-     return
-   }
 }
 
 var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
 
-func auth(w http.ResponseWriter, r *http.Request) (appengine.Context, string, bool) {
-  c := appengine.NewContext(r)
-
-  if user.Current(c) == nil {
-    loginPage(w, r)
-    return nil, "", true
-  }
-
-  domain := strings.Split(user.Current(c).Email, "@")[1]
-  c, err := appengine.Namespace(c, domain)
-  if err != nil {
-    errorPage(w, err)
-    return nil, "", true
-  }
-
-  c.Infof("Using namespace: %v", domain)
-  return c, domain, false
-}
-
 func root(w http.ResponseWriter, r *http.Request) {
-  c, domain, done := auth(w, r);
+  c, domain, done := web.Auth(w, r);
   if done == true { return }
 
   if r.Method == "PUT" {
@@ -79,13 +38,19 @@ func root(w http.ResponseWriter, r *http.Request) {
 
   nav, err := sitemap.Get(c, r.URL.Path)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
   text, html, err := page.Get(c, r.URL.Path)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
+    return
+  }
+
+  token, err := backup.GetDropboxToken(c)
+  if err != nil {
+    web.ErrorPage(w, err)
     return
   }
 
@@ -100,6 +65,7 @@ func root(w http.ResponseWriter, r *http.Request) {
     User string
     Title string
     Gravatar string
+    Dropbox bool
   } {
     text,
     html,
@@ -108,12 +74,13 @@ func root(w http.ResponseWriter, r *http.Request) {
     nav,
     user.Current(c).Email,
     sitemap.GetTitle(r.URL.Path, domain),
-    fmt.Sprintf("http://www.gravatar.com/avatar/%x", md5.Sum([]byte(user.Current(c).Email))),
+    fmt.Sprintf("//www.gravatar.com/avatar/%x", md5.Sum([]byte(user.Current(c).Email))),
+    token != "",
   }
 
   err = homeTemplate.Execute(w, data)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 }
@@ -129,7 +96,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
   err := decoder.Decode(&body)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
@@ -137,20 +104,20 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
   err = page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
   nav, err := sitemap.Add(c, r.URL.Path)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
   var navHtml bytes.Buffer
   err = navTemplate.Execute(&navHtml, nav)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
@@ -165,20 +132,20 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 var searchTemplate = template.Must(template.ParseFiles("html/search.html"))
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-  c, _, done := auth(w, r);
+  c, _, done := web.Auth(w, r);
   if done == true { return }
 
   r.ParseForm()
   results, err := sitemap.Search(c, r.Form["q"][0])
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
   var navHtml bytes.Buffer
   err = searchTemplate.Execute(&navHtml, results)
   if err != nil {
-    errorPage(w, err)
+    web.ErrorPage(w, err)
     return
   }
 
