@@ -80,14 +80,22 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
     return "", template.HTML(""), err
   }
 
-  afterGet(c, path, version.Content, string(version.Html))
+  domain := web.GetDomain(c)
+  afterGet.Call(c, domain, path, version.Content, string(version.Html))
 
   return version.Content, template.HTML(string(version.Html)), nil
 }
 
-func afterGet(c appengine.Context, path string, text string, html string) {
-  cachePageContent(c, path, text, html)
-}
+var afterGet = delay.Func("AfterPageGet", func(c appengine.Context, domain string, path string, text string, html string) {
+  c, err := appengine.Namespace(c, domain)
+  if err != nil {
+    c.Warningf("Error setting namespace %v: %v", domain, err.Error())
+  }
+  err = cachePageContent(c, path, text, html)
+  if err != nil {
+    c.Warningf("Error caching page %v: %v", path, err.Error())
+  }
+})
 
 func Set(c appengine.Context, path string, text string, html string, author string) error {
   version := PageVersion{
@@ -108,13 +116,16 @@ func Set(c appengine.Context, path string, text string, html string, author stri
   return nil
 }
 
-var afterSet = delay.Func("AfterSet", func(c appengine.Context, domain string, version PageVersion) {
+var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain string, version PageVersion) {
   c, err := appengine.Namespace(c, domain)
   if err != nil {
     c.Warningf("Error setting namespace %v: %v", domain, err.Error())
   }
 
-  cachePageContent(c, version.Path, version.Content, string(version.Html))
+  err = cachePageContent(c, version.Path, version.Content, string(version.Html))
+  if err != nil {
+    c.Warningf("Error caching page %v: %v", version.Path, err.Error())
+  }
 
   index, err := search.Open("pages")
   if err != nil {

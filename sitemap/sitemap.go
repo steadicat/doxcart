@@ -7,7 +7,9 @@ import (
   "appengine"
   "appengine/datastore"
   "appengine/search"
+  "appengine/delay"
   "page"
+  "web"
 )
 
 type Page struct {
@@ -52,7 +54,7 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
   if cached == nil {
     paths, err = fetch(c)
     if err != nil { return nil, err }
-    err = cache.Set(c, key, []byte(strings.Join(paths, ",")))
+    afterGet.Call(c, web.GetDomain(c), key, strings.Join(paths, ","))
     if err != nil { return nil, err }
   } else {
     paths = strings.Split(string(cached), ",")
@@ -64,6 +66,17 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
   }
   return nav, nil
 }
+
+var afterGet = delay.Func("AfterNavGet", func(c appengine.Context, domain string, key string, paths string) {
+  c, err := appengine.Namespace(c, domain)
+  if err != nil {
+    c.Warningf("Error setting namespace %v: %v", domain, err.Error())
+  }
+  err = cache.Set(c, key, []byte(paths))
+  if err != nil {
+    c.Warningf("Error caching sitemap: %v", err.Error())
+  }
+})
 
 func GetTitle(path string, domain string) string {
   bits := strings.Split(path, "/")
@@ -95,13 +108,18 @@ func Add(c appengine.Context, path string) ([]NavLink, error) {
   if err != nil { return []NavLink{}, err }
   nav, err := Get(c, path)
   if err != nil { return []NavLink{}, err }
-  err = cache.Clear(c, key)
-  if err != nil { return []NavLink{}, err }
 
   if !pathInNav(path, nav) {
     nav = append(nav, pathToNavLink(path, path))
   }
   sort.Sort(ByPath(nav))
+
+  paths := []string{}
+  for _, path := range nav {
+    paths = append(paths, path.Path)
+  }
+  afterGet.Call(c, web.GetDomain(c), key, strings.Join(paths, ","))
+
   return nav, nil
 }
 
