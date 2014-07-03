@@ -7,7 +7,9 @@ import (
   "appengine/datastore"
   "appengine/memcache"
   "appengine/search"
+  "appengine/delay"
   "backup"
+  "web"
 )
 
 type PageVersion struct {
@@ -78,8 +80,13 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
     return "", template.HTML(""), err
   }
 
-  cachePageContent(c, path, version.Content, string(version.Html))
+  afterGet(c, path, version.Content, string(version.Html))
+
   return version.Content, template.HTML(string(version.Html)), nil
+}
+
+func afterGet(c appengine.Context, path string, text string, html string) {
+  cachePageContent(c, path, text, html)
 }
 
 func Set(c appengine.Context, path string, text string, html string, author string) error {
@@ -95,16 +102,35 @@ func Set(c appengine.Context, path string, text string, html string, author stri
   _, err := datastore.Put(c, key, &version)
   if err != nil { return err }
 
-  cachePageContent(c, path, text, html)
-
-  index, err := search.Open("pages")
-  if err != nil { return err }
-  c.Infof("Indexing: %s", path)
-  _, err = index.Put(c, path, &version)
-  if err != nil { return err }
-
-  err = backup.SaveFile(c, path, text)
-  if err != nil { return err }
+  domain := web.GetDomain(c)
+  afterSet.Call(c, domain, version)
 
   return nil
 }
+
+var afterSet = delay.Func("AfterSet", func(c appengine.Context, domain string, version PageVersion) {
+  c, err := appengine.Namespace(c, domain)
+  if err != nil {
+    c.Warningf("Error setting namespace %v: %v", domain, err.Error())
+  }
+
+  cachePageContent(c, version.Path, version.Content, string(version.Html))
+
+  index, err := search.Open("pages")
+  if err != nil {
+    c.Warningf("Error opening search index: %v", err.Error())
+  }
+
+  c.Infof("Indexing %s", version.Path)
+  _, err = index.Put(c, version.Path, &version)
+  if err != nil {
+    c.Warningf("Error indexing %v: %v", version.Path, err.Error())
+  }
+
+  c.Infof("Saving to Dropbox: %s", version.Path)
+  err = backup.SaveFile(c, domain, version.Path, version.Content)
+  if err != nil {
+    c.Warningf("Error saving %v to dropbox: %v", version.Path, err.Error())
+  }
+})
+

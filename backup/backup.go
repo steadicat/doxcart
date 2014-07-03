@@ -54,7 +54,8 @@ type ServiceToken struct {
 }
 
 func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
-  c, _, done := web.Auth(w, r);
+  c := appengine.NewContext(r)
+  c, _, done := web.Auth(c, w, r);
   if done == true { return }
 
   r.ParseForm()
@@ -89,10 +90,12 @@ func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DropboxDisconnectHandler(w http.ResponseWriter, r *http.Request) {
-  c, _, done := web.Auth(w, r);
+  c := appengine.NewContext(r)
+  c, _, done := web.Auth(c, w, r);
   if done == true { return }
 
-  token, err := GetDropboxToken(c)
+  domain := web.GetDomain(c)
+  token, err := GetDropboxToken(c, domain)
   if err != nil {
     web.ErrorPage(w, err)
     return
@@ -147,14 +150,13 @@ func SetDropboxToken(c appengine.Context, accessToken string, uid string) error 
   return err
 }
 
-func GetDropboxToken(c appengine.Context) (string, error) {
-  domain := web.GetDomain(c)
+func GetDropboxToken(c appengine.Context, domain string) (string, error) {
   accessToken, err := cache.Get(c, "dropbox:" + domain)
   if err != nil { return "", err }
   if accessToken != nil { return string(accessToken), nil }
 
   serviceToken := ServiceToken{}
-  err = datastore.Get(c, datastore.NewKey(c, "ServiceToken", web.GetDomain(c) + "/dropbox", 0, nil), &serviceToken)
+  err = datastore.Get(c, datastore.NewKey(c, "ServiceToken", domain + "/dropbox", 0, nil), &serviceToken)
   if err == datastore.ErrNoSuchEntity {
     err = cache.Set(c, "dropbox:" + domain, []byte(""))
     return "", nil
@@ -164,8 +166,8 @@ func GetDropboxToken(c appengine.Context) (string, error) {
   return serviceToken.Token, nil
 }
 
-func SaveFile(c appengine.Context, path string, content string) error {
-  token, err := GetDropboxToken(c)
+func SaveFile(c appengine.Context, domain string, path string, content string) error {
+  token, err := GetDropboxToken(c, domain)
   if err != nil { return err }
   if token == "" { return nil }
 

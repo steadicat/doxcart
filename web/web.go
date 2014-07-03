@@ -27,9 +27,7 @@ func GetDomain(c appengine.Context) string {
   return strings.Split(user.Current(c).Email, "@")[1]
 }
 
-func Auth(w http.ResponseWriter, r *http.Request) (appengine.Context, string, bool) {
-  c := appengine.NewContext(r)
-
+func Auth(c appengine.Context, w http.ResponseWriter, r *http.Request) (appengine.Context, string, bool) {
   if user.Current(c) == nil {
     loginPage(w, r)
     return nil, "", true

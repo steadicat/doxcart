@@ -13,6 +13,7 @@ import (
   "sitemap"
   "backup"
   "crypto/md5"
+  "github.com/mjibson/appstats"
 )
 
 func init() {
@@ -22,13 +23,13 @@ func init() {
   http.HandleFunc("/_/dropbox", backup.DropboxHandler)
   http.HandleFunc("/_/dropbox/oauth", backup.DropboxOauthHandler)
   http.HandleFunc("/_/dropbox/disconnect", backup.DropboxDisconnectHandler)
-  http.HandleFunc("/", root)
+  http.Handle("/", appstats.NewHandler(root))
 }
 
 var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
 
-func root(w http.ResponseWriter, r *http.Request) {
-  c, domain, done := web.Auth(w, r);
+func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
+  c, domain, done := web.Auth(c, w, r);
   if done == true { return }
 
   if r.Method == "PUT" {
@@ -36,25 +37,52 @@ func root(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  nav, err := sitemap.Get(c, r.URL.Path)
-  if err != nil {
-    web.ErrorPage(w, err)
+  var nav []sitemap.NavLink
+  var text string
+  var html template.HTML
+  var token string
+  var logout string
+
+  errc := make(chan error)
+  go func() {
+    var err error
+    nav, err = sitemap.Get(c, r.URL.Path)
+    errc <- err
+  }()
+  go func() {
+    var err error
+    text, html, err = page.Get(c, r.URL.Path)
+    errc <- err
+  }()
+  go func() {
+    var err error
+    token, err = backup.GetDropboxToken(c, domain)
+    errc <- err
+  }()
+  go func() {
+    var err error
+    logout, err = user.LogoutURL(c, "/")
+    errc <- err
+  }()
+
+  err1, err2, err3, err4 := <-errc, <-errc, <-errc, <-errc
+
+  if err1 != nil {
+    web.ErrorPage(w, err1)
     return
   }
-
-  text, html, err := page.Get(c, r.URL.Path)
-  if err != nil {
-    web.ErrorPage(w, err)
+  if err2 != nil {
+    web.ErrorPage(w, err2)
     return
   }
-
-  token, err := backup.GetDropboxToken(c)
-  if err != nil {
-    web.ErrorPage(w, err)
+  if err3 != nil {
+    web.ErrorPage(w, err3)
     return
   }
-
-  logout, _ := user.LogoutURL(c, "/")
+  if err4 != nil {
+    web.ErrorPage(w, err4)
+    return
+  }
 
   data := struct {
     Text string
@@ -78,7 +106,7 @@ func root(w http.ResponseWriter, r *http.Request) {
     token != "",
   }
 
-  err = homeTemplate.Execute(w, data)
+  err := homeTemplate.Execute(w, data)
   if err != nil {
     web.ErrorPage(w, err)
     return
@@ -132,7 +160,8 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 var searchTemplate = template.Must(template.ParseFiles("html/search.html"))
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
-  c, _, done := web.Auth(w, r);
+  c := appengine.NewContext(r)
+  c, _, done := web.Auth(c, w, r);
   if done == true { return }
 
   r.ParseForm()
