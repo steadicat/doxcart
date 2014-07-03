@@ -19,10 +19,10 @@ import (
 func init() {
   http.HandleFunc("/favicon.ico", web.NotFound)
   http.HandleFunc("/robots.txt", web.NotFound)
-  http.HandleFunc("/s", searchHandler)
   http.HandleFunc("/_/dropbox", backup.DropboxHandler)
   http.HandleFunc("/_/dropbox/oauth", backup.DropboxOauthHandler)
   http.HandleFunc("/_/dropbox/disconnect", backup.DropboxDisconnectHandler)
+  http.Handle("/s", appstats.NewHandler(searchHandler))
   http.Handle("/", appstats.NewHandler(root))
 }
 
@@ -129,16 +129,26 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   }
 
   u := user.Current(c)
+  var nav []sitemap.NavLink
 
-  err = page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
-  if err != nil {
-    web.ErrorPage(w, err)
+  errc := make(chan error)
+  go func() {
+    err := page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
+    errc <- err
+  }()
+  go func() {
+    var err error
+    nav, err = sitemap.Add(c, r.URL.Path)
+    errc <- err
+  }()
+  err1, err2 := <-errc, <-errc
+
+  if err1 != nil {
+    web.ErrorPage(w, err1)
     return
   }
-
-  nav, err := sitemap.Add(c, r.URL.Path)
-  if err != nil {
-    web.ErrorPage(w, err)
+  if err2 != nil {
+    web.ErrorPage(w, err2)
     return
   }
 
@@ -159,8 +169,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
 var searchTemplate = template.Must(template.ParseFiles("html/search.html"))
 
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-  c := appengine.NewContext(r)
+func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   c, _, done := web.Auth(c, w, r);
   if done == true { return }
 
