@@ -69,12 +69,12 @@ func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
   client := urlfetch.Client(c)
   resp, err := client.Post(dropboxTokenEndpoint, "application/x-www-form-urlencoded", bytes.NewBufferString(v.Encode()))
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
   body, err := ioutil.ReadAll(resp.Body)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
   c.Infof("HTTP POST returned %v", string(body))
@@ -83,7 +83,7 @@ func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
   c.Infof("Unmarshaled to %v", response)
   err = SetDropboxToken(c, response["access_token"], response["uid"])
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
   http.Redirect(w, r, "/", http.StatusFound)
@@ -97,7 +97,7 @@ func DropboxDisconnectHandler(w http.ResponseWriter, r *http.Request) {
   domain := web.GetDomain(c)
   token, err := GetDropboxToken(c, domain)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 
@@ -107,7 +107,7 @@ func DropboxDisconnectHandler(w http.ResponseWriter, r *http.Request) {
 
   err = clearToken(c, token)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
   http.Redirect(w, r, "/", http.StatusFound)

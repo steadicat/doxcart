@@ -51,6 +51,9 @@ function addClass(cls, el) {
 function removeClass(cls, el) {
   setAttribute('class', el.className.replace(new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g'), ' '), el);
 }
+function hasClass(cls, el) {
+  return new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g').exec(el.className) !== null;
+}
 
 var restoreNav;
 
@@ -78,6 +81,7 @@ var navList = ge('navList');
 var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
 var content = ge('content');
+var title = ge('title');
 var body = ge('body');
 var search = ge('search');
 var emacs = ge('emacs');
@@ -93,6 +97,7 @@ var handlers = {
       show(editing);
       show(cancel);
       show(editorCol);
+      editor.resize();
       hide(navCol);
       addClass('half-width', contentCol);
       removeClass('half-width', content);
@@ -151,6 +156,46 @@ function handle(event) {
 var events = Object.keys(handlers);
 for (var i=0; i<events.length; i++) {
   handle(events[i]);
+}
+
+function navigate(url, el, fromBackButton) {
+  ajax.get(url, function(r) {
+    var res = JSON.parse(r);
+    if (res.Ok) {
+      body.innerHTML = res.Html;
+      title.innerHTML = res.Title;
+      editor.setValue(res.Text, -1);
+      document.title = res.Title;
+      !fromBackButton && window.history.pushState(null, res.Title, url);
+      setActive(el);
+      setTimeout(function() {
+        hide(save);
+        show(cancel);
+      }, 500); // TODO: why 500?
+    }
+  });
+}
+
+window.history.pushState && document.body.addEventListener('click', function(e) {
+  if (hasClass('async', e.target)) {
+    e.preventDefault();
+    navigate(e.target.href, e.target);
+  }
+});
+
+window.addEventListener('popstate', function(event) {
+  var el = navList.querySelector('[href="'+window.location.pathname+'"]');
+  navigate(window.location.href, el, true);
+});
+
+function setActive(el) {
+  var prev = navList.getElementsByClassName('b')[0];
+  if (prev) {
+    removeClass('b', prev);
+    addClass('black', prev);
+  }
+  addClass('b', el);
+  removeClass('black', el);
 }
 
 var editor = ace.edit("editor");

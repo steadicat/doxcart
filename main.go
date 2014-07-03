@@ -37,6 +37,23 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  if r.Header.Get("Accept") == "application/json" {
+    text, html, err := page.Get(c, r.URL.Path)
+    if err != nil {
+      web.ErrorJson(c, w, err)
+      return
+    }
+    response := struct{
+      Ok bool
+      Text string
+      Html string
+      Title string
+    }{true, text, string(html), sitemap.GetTitle(r.URL.Path, domain)}
+    encoder := json.NewEncoder(w)
+    encoder.Encode(response)
+    return
+  }
+
   var nav []sitemap.NavLink
   var text string
   var html template.HTML
@@ -68,19 +85,19 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   err1, err2, err3, err4 := <-errc, <-errc, <-errc, <-errc
 
   if err1 != nil {
-    web.ErrorPage(w, err1)
+    web.ErrorPage(c, w, err1)
     return
   }
   if err2 != nil {
-    web.ErrorPage(w, err2)
+    web.ErrorPage(c, w, err2)
     return
   }
   if err3 != nil {
-    web.ErrorPage(w, err3)
+    web.ErrorPage(c, w, err3)
     return
   }
   if err4 != nil {
-    web.ErrorPage(w, err4)
+    web.ErrorPage(c, w, err4)
     return
   }
 
@@ -108,7 +125,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
   err := homeTemplate.Execute(w, data)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 }
@@ -124,7 +141,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 
   err := decoder.Decode(&body)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 
@@ -144,18 +161,18 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   err1, err2 := <-errc, <-errc
 
   if err1 != nil {
-    web.ErrorPage(w, err1)
+    web.ErrorPage(c, w, err1)
     return
   }
   if err2 != nil {
-    web.ErrorPage(w, err2)
+    web.ErrorPage(c, w, err2)
     return
   }
 
   var navHtml bytes.Buffer
   err = navTemplate.Execute(&navHtml, nav)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 
@@ -176,14 +193,14 @@ func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) 
   r.ParseForm()
   results, err := sitemap.Search(c, r.Form["q"][0])
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 
   var navHtml bytes.Buffer
   err = searchTemplate.Execute(&navHtml, results)
   if err != nil {
-    web.ErrorPage(w, err)
+    web.ErrorPage(c, w, err)
     return
   }
 

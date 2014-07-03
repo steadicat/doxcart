@@ -50,6 +50,7 @@
         x.setRequestHeader('Content-type','application/x-www-form-urlencoded');
       }
     }
+    x.setRequestHeader('Accept','application/json');
     try {
       x.send(a);
     } catch (e) {

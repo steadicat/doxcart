@@ -1,8 +1,7 @@
 package web
 
 import (
-  "fmt"
-  "runtime"
+  "encoding/json"
   "strings"
   "net/http"
   "html/template"
@@ -18,7 +17,7 @@ func loginPage(w http.ResponseWriter, r *http.Request) {
    loginUrl, _ := user.LoginURL(c, r.URL.Path)
    err := loginTemplate.Execute(w, loginUrl)
    if err != nil {
-     ErrorPage(w, err)
+     ErrorPage(c, w, err)
      return
    }
 }
@@ -36,7 +35,7 @@ func Auth(c appengine.Context, w http.ResponseWriter, r *http.Request) (appengin
   domain := GetDomain(c)
   c, err := appengine.Namespace(c, domain)
   if err != nil {
-    ErrorPage(w, err)
+    ErrorPage(c, w, err)
     return nil, "", true
   }
 
@@ -48,10 +47,17 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
   http.Error(w, "Not found", 404)
 }
 
-func ErrorPage(w http.ResponseWriter, err error) {
-  trace := make([]byte, 1024)
-  count := runtime.Stack(trace, true)
+func ErrorPage(c appengine.Context, w http.ResponseWriter, err error) {
+  c.Errorf("Error: %v", err.Error())
   http.Error(w, err.Error(), http.StatusInternalServerError)
-  fmt.Fprintf(w, "Recover from panic: %s\n", err)
-  fmt.Fprintf(w, "Stack of %d bytes: %s\n", count, trace)
+}
+
+func ErrorJson(c appengine.Context, w http.ResponseWriter, err error) {
+  c.Errorf("Error: %v", err.Error())
+  response := struct{
+    Ok bool
+    Error string
+  }{false, err.Error()}
+  res, err := json.Marshal(response)
+  http.Error(w, string(res), http.StatusInternalServerError)
 }
