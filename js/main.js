@@ -134,12 +134,7 @@ function pathsToTree(links) {
 var Nav = React.createClass({
 
   getInitialState: function() {
-    var expanded = {};
-    var bits = this.props.path.split('/');
-    for (var i = 0, l = bits.length; i < l; i++) {
-      expanded[bits.slice(0, i+1).join('/') || '/'] = true;
-    }
-    return {expanded: expanded};
+    return {expanded: this.getExpandedMap({}, this.props.path)};
   },
 
   onLinkClick: function(path, e) {
@@ -150,8 +145,15 @@ var Nav = React.createClass({
   },
 
   componentWillReceiveProps: function(nextProps) {
-    this.state.expanded[nextProps.path] = true;
-    this.setState({expanded: this.state.expanded});
+    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.path)})
+  },
+
+  getExpandedMap: function(expanded, path) {
+    var bits = path.split('/');
+    for (var i = 0, l = bits.length; i < l; i++) {
+      expanded[bits.slice(0, i+1).join('/') || '/'] = true;
+    }
+    return expanded;
   },
 
   toggle: function(path, e) {
