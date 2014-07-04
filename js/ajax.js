@@ -51,6 +51,18 @@
       }
     }
     x.setRequestHeader('Accept','application/json');
+
+    x.upload.addEventListener('progress', function(e) {
+      if (e.lengthComputable) {
+        ajax.progress && ajax.progress.setProgress(0.5 * e.loaded / e.total);
+      }
+    });
+    x.addEventListener('progress', function(e) {
+      if (e.lengthComputable) {
+        ajax.progress && ajax.progress.setProgress(0.5 + 0.5 * e.loaded / e.total);
+      }
+    });
+
     try {
       x.send(a);
     } catch (e) {

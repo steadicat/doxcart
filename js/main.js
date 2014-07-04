@@ -155,9 +155,8 @@ var Nav = React.createClass({
 
   render: function() {
     var tree = this.props.search || [pathsToTree(this.props.nav)];
-    return this.transferPropsTo(
-      this.renderChildren(tree, true, true)
-    );
+    var children = this.renderChildren(tree, true, true);
+    return children ? this.transferPropsTo(children) : React.DOM.span();
   },
 
   renderChildren: function(children, expanded, root) {
@@ -209,6 +208,66 @@ var nav = React.renderComponent(
   ge('navList')
 );
 
+var Progress = React.createClass({
+
+  getInitialState: function() {
+    return {progress: 0};
+  },
+
+  start: function() {
+  },
+
+  setProgress: function(ratio) {
+    if (this.state.progress == 0) {
+      if (ratio == 1) return;
+      if (!this._interval) {
+        this._interval = setInterval(this.updateProgress, 100);
+      }
+    }
+    this.setState({progress: ratio});
+  },
+
+  updateProgress: function() {
+    this.setState({progress: this.state.progress * 0.95 + 0.05});
+  },
+
+  end: function() {
+    if (this.state.progress == 0) return;
+    this.setProgress(1);
+    this._timeout = setTimeout(this.clear, 200);
+  },
+
+  clear: function() {
+    this.setState({progress: 0});
+    this._interval && clearInterval(this._interval);
+    this._interval = null;
+    this._timeout && clearTimeout(this._timeout);
+    this._timeout = null;
+  },
+
+  componentWillUnmount: function() {
+    this.clear();
+  },
+
+  render: function() {
+    if (this.state.progress == 0) return React.DOM.div();
+    return React.DOM.div(
+      {
+        className: 'fixed top left blue-bg t-width',
+        style: {height: 2, width: (this.state.progress * 100) + '%'}
+      }
+    );
+  }
+
+});
+
+var progress = React.renderComponent(
+  Progress({}),
+  ge('progress')
+);
+
+ajax.progress = progress;
+
 function setAttribute(attr, value, el) {
   el.setAttribute(attr, value);
 }
@@ -232,7 +291,9 @@ var doSearch = debounce(function() {
   if (!search.value) {
     nav.setProps({search: null});
   } else {
+    progress.start();
     ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
+      progress.end();
       var results = JSON.parse(res);
       nav.setProps({search: results});
     });
@@ -270,10 +331,12 @@ var handlers = {
     },
     save: function(e) {
       body.innerHTML = marked(editor.getValue());
+      progress.start();
       ajax.put(window.location.pathname, {
         text: editor.getValue(),
         html: marked(editor.getValue())
       }, function(res) {
+        progress.end();
         var doc = JSON.parse(res);
         doc.nav && nav.setProps({nav: doc.nav});
       });
@@ -320,9 +383,11 @@ for (var i=0; i<events.length; i++) {
 }
 
 function navigate(path, fromBackButton) {
+  progress.start();
   nav.setProps({path: path});
   ajax.get(path, function(r) {
     var res = JSON.parse(r);
+    progress.end();
     if (res.ok) {
       body.innerHTML = res.html;
       title.innerHTML = res.title;
