@@ -35,7 +35,7 @@ func pathToNavLink(path string, currentPath string) NavLink {
   bits := strings.Split(path, "/")
   depth := len(bits)
   title := bits[len(bits) - 1]
-  if title == "" {
+  if path == "/" {
     title = "home"
     depth--
   }
@@ -79,11 +79,11 @@ var afterGet = delay.Func("AfterNavGet", func(c appengine.Context, domain string
 })
 
 func GetTitle(path string, domain string) string {
-  bits := strings.Split(path, "/")
-  title := bits[len(bits) - 1]
-  if title == "" {
+  if path == "/" {
     return domain
   }
+  bits := strings.Split(path, "/")
+  title := bits[len(bits) - 1]
   return formatTitle(title)
 }
 

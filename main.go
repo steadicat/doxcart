@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "bytes"
+	"strings"
   "html/template"
   "net/http"
   "encoding/json"
@@ -37,8 +38,17 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
+	path := r.URL.Path
+	if path != "/" {
+		path = strings.TrimRight(r.URL.Path, "/")
+	}
+  if (path != r.URL.Path) {
+		http.Redirect(w, r, path, http.StatusMovedPermanently)
+		return
+	}
+
   if r.Header.Get("Accept") == "application/json" {
-    text, html, err := page.Get(c, r.URL.Path)
+    text, html, err := page.Get(c, path)
     if err != nil {
       web.ErrorJson(c, w, err)
       return
@@ -48,7 +58,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
       Text string
       Html string
       Title string
-    }{true, text, string(html), sitemap.GetTitle(r.URL.Path, domain)}
+    }{true, text, string(html), sitemap.GetTitle(path, domain)}
     encoder := json.NewEncoder(w)
     encoder.Encode(response)
     return
@@ -63,12 +73,12 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   errc := make(chan error)
   go func() {
     var err error
-    nav, err = sitemap.Get(c, r.URL.Path)
+    nav, err = sitemap.Get(c, path)
     errc <- err
   }()
   go func() {
     var err error
-    text, html, err = page.Get(c, r.URL.Path)
+    text, html, err = page.Get(c, path)
     errc <- err
   }()
   go func() {
@@ -114,7 +124,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   } {
     text,
     html,
-    r.URL.Path,
+    path,
     logout,
     nav,
     user.Current(c).Email,
