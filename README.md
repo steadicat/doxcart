@@ -13,6 +13,12 @@
 
     $ goapp get github.com/mjibson/appstats
 
+### Create config module
+
+The `config` module contains the secret keys and therefore is not included in the repo. You can copy the sample file. It contains bogus keys, but it should still work unless you're interacting with Dropbox (in which case you should obtain the real keys).
+
+    $ cp config/config.go.sample config/config.go
+
 ### Start your engine
 
     $ goapp serve
