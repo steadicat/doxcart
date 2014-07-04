@@ -22,6 +22,7 @@ html .abs { position: absolute; }
 .full-width { width: 100%; }
 .half-width { width: 50%; }
 .quarter-width { width: 25%; }
+.crop { overflow: hidden; }
 .scroll { overflow-y: auto; }
 .centered { margin-left: auto; margin-right: auto; }
 .bb { box-sizing: border-box; }
@@ -49,6 +50,27 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
   -moz-transition: width 0.1s;
   -o-transition: width 0.1s;
   -ms-transition: width 0.1s;
+}
+.t-all {
+  transition: all 0.1s ease-out;
+  -webkit-transition: all 0.1s ease-out;
+  -moz-transition: all 0.1s ease-out;
+  -o-transition: all 0.1s ease-out;
+  -ms-transition: all 0.1s ease-out;
+}
+.t-transform {
+  transition: transform 0.1s;
+  -webkit-transition: -webkit-transform 0.1s;
+  -moz-transition: -moz-transform 0.1s;
+  -o-transition: -o-transform 0.1s;
+  -ms-transition: -ms-transform 0.1s;
+}
+.rotate90 {
+  transform: rotate(90deg);
+  -webkit-transform: -webkit-rotate(90deg);
+  -moz-transform: -moz-rotate(90deg);
+  -o-transform: -o-rotate(90deg);
+  -ms-transform: -ms-rotate(90deg);
 }
 
 /* Buttons */

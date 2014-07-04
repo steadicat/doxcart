@@ -38,21 +38,12 @@ function getCookies() {
 }
 
 var icons = {
-  down: function(ctx) {
-    ctx.beginPath();
-    ctx.moveTo(10, 18);
-    ctx.lineTo(22, 18);
-    ctx.lineTo(16, 26);
-    ctx.lineTo(10, 18);
-    ctx.closePath();
-    ctx.fill();
-  },
   right: function(ctx) {
     ctx.beginPath();
-    ctx.moveTo(14, 16);
-    ctx.lineTo(14, 28);
-    ctx.lineTo(22, 22);
-    ctx.lineTo(14, 16);
+    ctx.moveTo(14, 10);
+    ctx.lineTo(14, 22);
+    ctx.lineTo(22, 16);
+    ctx.lineTo(14, 10);
     ctx.closePath();
     ctx.fill();
   }
@@ -65,10 +56,7 @@ var Icon = React.createClass({
         React.DOM.div(
           {
             className: 'ib',
-            style: {
-              width: 16,
-              height: 16
-            }
+            style: {width: 16, height: 16}
           }
         )
       );
@@ -78,10 +66,7 @@ var Icon = React.createClass({
         {
           width: 32,
           height: 32,
-          style: {
-            width: 16,
-            height: 16
-          }
+          style: {width: 16, height: 16}
         }
       )
     );
@@ -162,6 +147,12 @@ var Nav = React.createClass({
     this.setState({expanded: this.state.expanded});
   },
 
+  countExpandedChildren: function(children) {
+    return children.length + (children.map(function(child) {
+      return 1 + this.state.expanded[child.path] ? this.countExpandedChildren(child.children) : 0;
+    }.bind(this))).reduce(function(a,b) { return a+b }, 0);
+  },
+
   render: function() {
     var tree = this.props.search || [pathsToTree(this.props.nav)];
     var children = this.renderChildren(tree, true, true);
@@ -169,13 +160,21 @@ var Nav = React.createClass({
   },
 
   renderChildren: function(children, expanded, root) {
-    if (!children || !children.length || !expanded) return null;
+    if (!children || !children.length) return null;
     return React.DOM.ul(
       {
         className: cx({
           'mlm':  !root,
-          'no-list': true
-        })
+          'no-list': true,
+          't-all': true,
+          'crop': true
+        }),
+        style: {
+          height: expanded ? (this.countExpandedChildren(children) * 20) : 0,
+          opacity: expanded ? 1 : 0,
+          transform: expanded ? null : 'scale(0.5)',
+          transformOrigin: '0 0'
+        }
       },
       children.map(this.renderChild)
     );
@@ -191,8 +190,13 @@ var Nav = React.createClass({
         className: 'nobr'
       },
       Icon({
-        className: hasChildren ? 'pointer' : null,
-        icon: (hasChildren && child.hasParent) ? (expanded ? 'down' : 'right') : null,
+        className: cx({
+          'pointer': hasChildren,
+          't-transform': true,
+          'rotate90': expanded
+        }),
+        style: {verticalAlign: -3},
+        icon: (hasChildren && child.hasParent) ? 'right' : null,
         color: '#aaa',
         onClick: this.toggle.bind(this, child.path)
       }),
@@ -213,7 +217,7 @@ var Nav = React.createClass({
 });
 
 var nav = React.renderComponent(
-  Nav({nav: navLinks, path: path, className: 'mts mrs', style: {marginLeft: -8}}),
+  Nav({nav: navLinks, path: path, className: 'mts', style: {marginLeft: -8}}),
   ge('navList')
 );
 
