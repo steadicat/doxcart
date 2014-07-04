@@ -1,4 +1,4 @@
-package backup
+package dropbox
 
 import (
   "appengine"
@@ -20,6 +20,12 @@ const dropboxCallbackDev = "http://localhost:8080/_/dropbox/oauth"
 const dropboxCallback = "https://doxcart.appspot.com/_/dropbox/oauth"
 const dropboxTokenEndpoint = "https://api.dropbox.com/1/oauth2/token"
 
+func Init() {
+  http.HandleFunc("/_/dropbox", setupHandler)
+  http.HandleFunc("/_/dropbox/oauth", oauthHandler)
+  http.HandleFunc("/_/dropbox/disconnect", disconnectHandler)
+}
+
 func getCallbackUrl() string {
   if appengine.IsDevAppServer() {
     return dropboxCallbackDev
@@ -39,7 +45,7 @@ func getLoginUrl() string {
   return u.String()
 }
 
-func DropboxHandler(w http.ResponseWriter, r *http.Request) {
+func setupHandler(w http.ResponseWriter, r *http.Request) {
   u := getLoginUrl()
   c := appengine.NewContext(r)
   c.Infof("Redirecting to: %v", u)
@@ -53,7 +59,7 @@ type ServiceToken struct {
   Id string
 }
 
-func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
+func oauthHandler(w http.ResponseWriter, r *http.Request) {
   c := appengine.NewContext(r)
   c, _, done := web.Auth(c, w, r);
   if done == true { return }
@@ -81,7 +87,7 @@ func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
   response := make(map[string]string)
   json.Unmarshal(body, &response)
   c.Infof("Unmarshaled to %v", response)
-  err = SetDropboxToken(c, response["access_token"], response["uid"])
+  err = setToken(c, response["access_token"], response["uid"])
   if err != nil {
     web.ErrorPage(c, w, err)
     return
@@ -89,13 +95,13 @@ func DropboxOauthHandler(w http.ResponseWriter, r *http.Request) {
   http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func DropboxDisconnectHandler(w http.ResponseWriter, r *http.Request) {
+func disconnectHandler(w http.ResponseWriter, r *http.Request) {
   c := appengine.NewContext(r)
   c, _, done := web.Auth(c, w, r);
   if done == true { return }
 
   domain := web.GetDomain(c)
-  token, err := GetDropboxToken(c, domain)
+  token, err := GetToken(c, domain)
   if err != nil {
     web.ErrorPage(c, w, err)
     return
@@ -134,7 +140,7 @@ func clearToken(c appengine.Context, token string) error {
   return err
 }
 
-func SetDropboxToken(c appengine.Context, accessToken string, uid string) error {
+func setToken(c appengine.Context, accessToken string, uid string) error {
   email := user.Current(c).Email
   serviceToken := ServiceToken{
     email,
@@ -150,7 +156,7 @@ func SetDropboxToken(c appengine.Context, accessToken string, uid string) error 
   return err
 }
 
-func GetDropboxToken(c appengine.Context, domain string) (string, error) {
+func GetToken(c appengine.Context, domain string) (string, error) {
   accessToken, err := cache.Get(c, "dropbox:" + domain)
   if err != nil { return "", err }
   if accessToken != nil { return string(accessToken), nil }
@@ -167,7 +173,7 @@ func GetDropboxToken(c appengine.Context, domain string) (string, error) {
 }
 
 func SaveFile(c appengine.Context, domain string, path string, content string) error {
-  token, err := GetDropboxToken(c, domain)
+  token, err := GetToken(c, domain)
   if err != nil { return err }
   if token == "" { return nil }
 

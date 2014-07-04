@@ -8,7 +8,7 @@ import (
   "appengine/memcache"
   "appengine/search"
   "appengine/delay"
-  "backup"
+  "dropbox"
   "web"
 )
 
@@ -139,7 +139,7 @@ var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain strin
   }
 
   c.Infof("Saving to Dropbox: %s", version.Path)
-  err = backup.SaveFile(c, domain, version.Path, version.Content)
+  err = dropbox.SaveFile(c, domain, version.Path, version.Content)
   if err != nil {
     c.Warningf("Error saving %v to dropbox: %v", version.Path, err.Error())
   }

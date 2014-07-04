@@ -12,7 +12,7 @@ import (
   "page"
   "web"
   "sitemap"
-  "backup"
+  "dropbox"
   "crypto/md5"
   "github.com/mjibson/appstats"
 )
@@ -20,9 +20,7 @@ import (
 func init() {
   http.HandleFunc("/favicon.ico", web.NotFound)
   http.HandleFunc("/robots.txt", web.NotFound)
-  http.HandleFunc("/_/dropbox", backup.DropboxHandler)
-  http.HandleFunc("/_/dropbox/oauth", backup.DropboxOauthHandler)
-  http.HandleFunc("/_/dropbox/disconnect", backup.DropboxDisconnectHandler)
+	dropbox.Init()
   http.Handle("/s", appstats.NewHandler(searchHandler))
   http.Handle("/", appstats.NewHandler(root))
 }
@@ -83,7 +81,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   }()
   go func() {
     var err error
-    token, err = backup.GetDropboxToken(c, domain)
+    token, err = dropbox.GetToken(c, domain)
     errc <- err
   }()
   go func() {
