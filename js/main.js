@@ -119,8 +119,12 @@ function pathsToTree(links) {
     byPath[path] = links[i];
     links[i].children = [];
     if (path == '/') continue;
-    var parentPath = path.substring(0, path.lastIndexOf('/')) || '/';
-    var parent = byPath[parentPath];
+    var parentPath = path;
+    var parent = null;
+    while (!parent) {
+      parentPath = parentPath.substring(0, parentPath.lastIndexOf('/')) || '/';
+      parent = byPath[parentPath];
+    }
     parent.children.push(links[i]);
     links[i].hasParent = true;
   }
