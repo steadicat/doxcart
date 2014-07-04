@@ -1,0 +1,4 @@
+package config
+
+const DropboxAppKey = "abcdefghijklmno"
+const DropboxAppSecret = "1234567890abcde"
