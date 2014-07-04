@@ -146,9 +146,12 @@ var Nav = React.createClass({
     if (history.pushState) {
       navigate(path);
       e.preventDefault();
-      this.state.expanded[path] = true;
-      this.setState({expanded: this.state.expanded});
     }
+  },
+
+  componentWillReceiveProps: function(nextProps) {
+    this.state.expanded[nextProps.path] = true;
+    this.setState({expanded: this.state.expanded});
   },
 
   toggle: function(path, e) {
@@ -385,6 +388,17 @@ var events = Object.keys(handlers);
 for (var i=0; i<events.length; i++) {
   handle(events[i]);
 }
+
+document.body.addEventListener('click', function(e) {
+  if (e.target.tagName == 'A') {
+    var url = new URL(e.target.href);
+    if ((url.hostname == window.location.hostname) &&
+        (url.pathname[1] !== '_')) {
+      e.preventDefault();
+      navigate(url.pathname);
+    }
+  }
+});
 
 function navigate(path, fromBackButton) {
   progress.start();
