@@ -1,4 +1,16 @@
+var cx = React.addons.classSet;
 var ge = document.getElementById.bind(document);
+
+function debounce(f) {
+  var timeout;
+  return function() {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      timeout = null;
+      f();
+    }, 500);
+  }
+}
 
 function getCookies() {
   var c = document.cookie, v = 0, cookies = {};
@@ -25,16 +37,47 @@ function getCookies() {
   return cookies;
 }
 
-function debounce(f) {
-  var timeout;
-  return function() {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(function() {
-      timeout = null;
-      f();
-    }, 500);
+var Nav = React.createClass({
+
+  navigate: function(path, e) {
+    e.preventDefault();
+    navigate(path);
+  },
+
+  render: function() {
+    return React.DOM.ul(
+      {
+        className: "mtm mhs no-list"
+      },
+      (this.props.search || this.props.nav).map(this.renderLinks)
+    );
+  },
+
+  renderLinks: function(link) {
+    var current = link.path == this.props.path;
+    return React.DOM.li(
+      {
+        style: {marginLeft: this.props.search ? null : link.depth}
+      },
+      React.DOM.a(
+        {
+          href: link.path,
+          className: cx({
+            b: current,
+            black: !current
+          }),
+          onClick: history.pushState && this.navigate.bind(this, link.path)
+        },
+        link.title
+      )
+    );
   }
-}
+});
+
+var nav = React.renderComponent(
+  Nav({nav: navLinks, path: path}),
+  ge('navList')
+);
 
 function setAttribute(attr, value, el) {
   el.setAttribute(attr, value);
@@ -55,21 +98,15 @@ function hasClass(cls, el) {
   return new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g').exec(el.className) !== null;
 }
 
-var restoreNav;
-
 var doSearch = debounce(function() {
   if (!search.value) {
-    if (restoreNav) {
-      navList.innerHTML = restoreNav;
-      restoreNav = null;
-    }
-    return;
+    nav.setProps({search: null});
+  } else {
+    ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
+      var results = JSON.parse(res);
+      nav.setProps({search: results});
+    });
   }
-  ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
-    var doc = JSON.parse(res);
-    if (!restoreNav) restoreNav = navList.innerHTML;
-    navList.innerHTML = doc.Nav;
-  });
 });
 
 var edit = ge('edit');
@@ -77,7 +114,6 @@ var editing = ge('editing');
 var save = ge('save');
 var cancel = ge('cancel');
 var navCol = ge('navCol');
-var navList = ge('navList');
 var editorCol = ge('editorCol');
 var contentCol = ge('contentCol');
 var content = ge('content');
@@ -104,14 +140,12 @@ var handlers = {
     },
     save: function(e) {
       body.innerHTML = marked(editor.getValue());
-      ajax.put(window.location.href, {
+      ajax.put(window.location.pathname, {
         text: editor.getValue(),
         html: marked(editor.getValue())
       }, function(res) {
         var doc = JSON.parse(res);
-        if (doc.Nav) {
-          navList.innerHTML = doc.Nav;
-        }
+        doc.nav && nav.setProps({nav: doc.nav});
       });
       show(edit);
       hide(editing);
@@ -136,9 +170,6 @@ var handlers = {
   },
   keyup: {
     search: doSearch
-  },
-  change: {
-    search: doSearch
   }
 };
 
@@ -158,16 +189,16 @@ for (var i=0; i<events.length; i++) {
   handle(events[i]);
 }
 
-function navigate(url, el, fromBackButton) {
-  ajax.get(url, function(r) {
+function navigate(path, fromBackButton) {
+  ajax.get(path, function(r) {
     var res = JSON.parse(r);
-    if (res.Ok) {
-      body.innerHTML = res.Html;
-      title.innerHTML = res.Title;
-      editor.setValue(res.Text, -1);
-      document.title = res.Title;
-      !fromBackButton && window.history.pushState(null, res.Title, url);
-      setActive(el);
+    if (res.ok) {
+      body.innerHTML = res.html;
+      title.innerHTML = res.title;
+      editor.setValue(res.text, -1);
+      document.title = res.title;
+      !fromBackButton && window.history.pushState(null, res.title, path);
+      nav.setProps({path: path});
       setTimeout(function() {
         hide(save);
         show(cancel);
@@ -176,27 +207,10 @@ function navigate(url, el, fromBackButton) {
   });
 }
 
-window.history.pushState && document.body.addEventListener('click', function(e) {
-  if (hasClass('async', e.target)) {
-    e.preventDefault();
-    navigate(e.target.href, e.target);
-  }
-});
-
 window.addEventListener('popstate', function(event) {
-  var el = navList.querySelector('[href="'+window.location.pathname+'"]');
-  navigate(window.location.href, el, true);
+  navigate(window.location.pathname || '/', true);
 });
 
-function setActive(el) {
-  var prev = navList.getElementsByClassName('b')[0];
-  if (prev) {
-    removeClass('b', prev);
-    addClass('black', prev);
-  }
-  addClass('b', el);
-  removeClass('black', el);
-}
 
 var editor = ace.edit("editor");
 editor.setTheme('ace/theme/tomorrow');
@@ -253,7 +267,6 @@ marked.setOptions({
     return hljs.highlightAuto(code).value;
   }
 });
-
 
 editor.getSession().on('change', debounce(function(e) {
   hide(cancel);

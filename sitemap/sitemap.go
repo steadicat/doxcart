@@ -17,10 +17,10 @@ type Page struct {
 }
 
 type NavLink struct {
-  Path string
-  Title string
-  Active bool
-  Depth int
+  Path string `json:"path"`
+  Title string `json:"title"`
+  Active bool `json:"-"`
+  Depth int `json:"depth"`
 }
 
 const key = "sitemap"
@@ -109,8 +109,10 @@ func Add(c appengine.Context, path string) ([]NavLink, error) {
   nav, err := Get(c, path)
   if err != nil { return []NavLink{}, err }
 
+  navLink := pathToNavLink(path, path)
+
   if !pathInNav(path, nav) {
-    nav = append(nav, pathToNavLink(path, path))
+    nav = append(nav, navLink)
   }
   sort.Sort(ByPath(nav))
 

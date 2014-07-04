@@ -2,7 +2,6 @@ package main
 
 import (
   "fmt"
-  "bytes"
 	"strings"
   "html/template"
   "net/http"
@@ -52,10 +51,10 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
       return
     }
     response := struct{
-      Ok bool
-      Text string
-      Html string
-      Title string
+      Ok bool `json:"ok"`
+      Text string `json:"text"`
+      Html string `json:"html"`
+      Title string `json:"title"`
     }{true, text, string(html), sitemap.GetTitle(path, domain)}
     encoder := json.NewEncoder(w)
     encoder.Encode(response)
@@ -109,6 +108,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
+
   data := struct {
     Text string
     Html template.HTML
@@ -137,8 +137,6 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 }
-
-var navTemplate = template.Must(template.ParseFiles("html/nav.html"))
 
 func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   decoder := json.NewDecoder(r.Body)
@@ -177,22 +175,13 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  var navHtml bytes.Buffer
-  err = navTemplate.Execute(&navHtml, nav)
-  if err != nil {
-    web.ErrorPage(c, w, err)
-    return
-  }
-
   response := struct{
-    Ok bool
-    Nav string
-  }{true, navHtml.String()}
+    Ok bool `json:"ok"`
+    Nav []sitemap.NavLink `json:"nav"`
+  }{true, nav}
   encoder := json.NewEncoder(w)
   encoder.Encode(response)
 }
-
-var searchTemplate = template.Must(template.ParseFiles("html/search.html"))
 
 func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   c, _, done := web.Auth(c, w, r);
@@ -205,18 +194,6 @@ func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) 
     return
   }
 
-  var navHtml bytes.Buffer
-  err = searchTemplate.Execute(&navHtml, results)
-  if err != nil {
-    web.ErrorPage(c, w, err)
-    return
-  }
-
-  response := struct{
-    Ok bool
-    Nav string
-  }{true, navHtml.String()}
-
   encoder := json.NewEncoder(w)
-  encoder.Encode(response)
+  encoder.Encode(results)
 }

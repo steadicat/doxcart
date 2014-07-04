@@ -55,8 +55,8 @@ func ErrorPage(c appengine.Context, w http.ResponseWriter, err error) {
 func ErrorJson(c appengine.Context, w http.ResponseWriter, err error) {
   c.Errorf("Error: %v", err.Error())
   response := struct{
-    Ok bool
-    Error string
+    Ok bool `json:"ok"`
+    Error string `json:"error"`
   }{false, err.Error()}
   res, err := json.Marshal(response)
   http.Error(w, string(res), http.StatusInternalServerError)
