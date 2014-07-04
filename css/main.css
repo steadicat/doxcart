@@ -39,6 +39,7 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
 .text-xs { font-size: 12px; line-height: 20px; }
 
 .no-list { list-style-type: none; }
+.nobr { white-space: nowrap; }
 
 /* UI */
 .pointer { cursor: pointer; }
@@ -67,7 +68,7 @@ h4 { font-size: 24px; line-height: 36px; margin: 36px 0 12px; }
 h5 { font-size: 18px; line-height: 24px; margin: 24px 0 12px; }
 h6 { font-size: 16px; line-height: 24px; margin: 24px 0 12px; }
 
-ul, ol { margin-left: 20px; }
+#content ul, #content ol { margin-left: 20px; }
 
 #content code, #content pre { background: #f6f6f6; padding: 0 2px; border-radius: 3px; border: 1px solid #eee; }
 #content pre code { border: none; }

@@ -37,45 +37,175 @@ function getCookies() {
   return cookies;
 }
 
-var Nav = React.createClass({
-
-  navigate: function(path, e) {
-    e.preventDefault();
-    navigate(path);
+var icons = {
+  down: function(ctx) {
+    ctx.beginPath();
+    ctx.moveTo(10, 18);
+    ctx.lineTo(22, 18);
+    ctx.lineTo(16, 26);
+    ctx.lineTo(10, 18);
+    ctx.closePath();
+    ctx.fill();
   },
+  right: function(ctx) {
+    ctx.beginPath();
+    ctx.moveTo(14, 16);
+    ctx.lineTo(14, 28);
+    ctx.lineTo(22, 22);
+    ctx.lineTo(14, 16);
+    ctx.closePath();
+    ctx.fill();
+  }
+};
 
+var Icon = React.createClass({
   render: function() {
-    return React.DOM.ul(
-      {
-        className: "mtm mhs no-list"
-      },
-      (this.props.search || this.props.nav).map(this.renderLinks)
+    if (!this.props.icon) {
+      return this.transferPropsTo(
+        React.DOM.div(
+          {
+            className: 'ib',
+            style: {
+              width: 16,
+              height: 16
+            }
+          }
+        )
+      );
+    }
+    return this.transferPropsTo(
+      React.DOM.canvas(
+        {
+          width: 32,
+          height: 32,
+          style: {
+            width: 16,
+            height: 16
+          }
+        }
+      )
     );
   },
 
-  renderLinks: function(link) {
-    var current = link.path == this.props.path;
+  getContext: function() {
+    var ctx = this.getDOMNode().getContext('2d');
+    if (this.props.color) {
+      ctx.fillStyle = this.props.color;
+      ctx.strokeStyle = this.props.color;
+    }
+    return ctx;
+  },
+
+  componentDidMount: function() {
+    if (!this.props.icon) return;
+    icons[this.props.icon](this.getContext());
+  },
+
+  componentDidUpdate: function(prevProps) {
+    if (!this.props.icon) return;
+    if (prevProps.icon === this.props.icon) return;
+    var ctx = this.getContext();
+    ctx.clearRect(0, 0, 32, 32);
+    icons[this.props.icon](ctx);
+  }
+
+});
+
+
+function pathsToTree(links) {
+  var byPath = {};
+  for (var i = 0, l = links.length; i < l; i++) {
+    var path = links[i].path;
+    byPath[path] = links[i];
+    links[i].children = [];
+    if (path == '/') continue;
+    var parentPath = path.substring(0, path.lastIndexOf('/')) || '/';
+    var parent = byPath[parentPath];
+    parent.children.push(links[i]);
+    links[i].hasParent = true;
+  }
+  return byPath['/'];
+};
+
+var Nav = React.createClass({
+
+  getInitialState: function() {
+    var expanded = {};
+    var bits = this.props.path.split('/');
+    for (var i = 0, l = bits.length; i < l; i++) {
+      expanded[bits.slice(0, i+1).join('/') || '/'] = true;
+    }
+    return {expanded: expanded};
+  },
+
+  onLinkClick: function(path, e) {
+    if (history.pushState) {
+      navigate(path);
+      e.preventDefault();
+      this.state.expanded[path] = true;
+      this.setState({expanded: this.state.expanded});
+    }
+  },
+
+  toggle: function(path, e) {
+    e.preventDefault();
+    this.state.expanded[path] = !this.state.expanded[path];
+    this.setState({expanded: this.state.expanded});
+  },
+
+  render: function() {
+    var tree = this.props.search || [pathsToTree(this.props.nav)];
+    return this.transferPropsTo(
+      this.renderChildren(tree, true, true)
+    );
+  },
+
+  renderChildren: function(children, expanded, root) {
+    if (!children || !children.length || !expanded) return null;
+    return React.DOM.ul(
+      {
+        className: cx({
+          'mlm':  !root,
+          'no-list': true
+        })
+      },
+      children.map(this.renderChild)
+    );
+  },
+
+  renderChild: function(child) {
+    var current = child.path == this.props.path;
+    var expanded = this.state.expanded[child.path];
+    var hasChildren = child.children && !!child.children.length;
     return React.DOM.li(
       {
-        style: {marginLeft: this.props.search ? null : link.depth}
+        key: child.path,
+        className: 'nobr'
       },
+      Icon({
+        className: hasChildren ? 'pointer' : null,
+        icon: (hasChildren && child.hasParent) ? (expanded ? 'down' : 'right') : null,
+        color: '#aaa',
+        onClick: this.toggle.bind(this, child.path)
+      }),
       React.DOM.a(
         {
-          href: link.path,
+          href: child.path,
           className: cx({
             b: current,
             black: !current
           }),
-          onClick: history.pushState && this.navigate.bind(this, link.path)
+          onClick: this.onLinkClick.bind(this, child.path)
         },
-        link.title
-      )
+        child.title
+      ),
+      this.renderChildren(child.children, expanded)
     );
   }
 });
 
 var nav = React.renderComponent(
-  Nav({nav: navLinks, path: path}),
+  Nav({nav: navLinks, path: path, className: 'mts mrs', style: {marginLeft: -8}}),
   ge('navList')
 );
 

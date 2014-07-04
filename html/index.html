@@ -23,16 +23,18 @@
             <a href="/_/dropbox">Enable Dropbox Sync</a>
           {{end}}
         </div>
-        <img src="{{.Gravatar}}" class="ib mid" style="width: 30px; height: 30px; border-radius: 15px; margin-top: 1px" />
-        <div class="ib mid pls" style="line-height: 14px">
-          <div>{{.User}}</div>
-          <a href="{{.LogoutUrl}}">Log out</a>
+        <div class="nobr">
+          <img src="{{.Gravatar}}" class="ib mid" style="width: 30px; height: 30px; border-radius: 15px; margin-top: 1px" />
+          <div class="ib mid pls" style="line-height: 14px">
+            <div>{{.User}}</div>
+            <a href="{{.LogoutUrl}}">Log out</a>
+          </div>
         </div>
       </div>
       <div class="plm prh mts">
         <input type="text" id="search" class="full-width bb phs input" placeholder="Search" />
         <div id="navList">
-          <ul class="mtm mhs no-list">
+          <ul class="mtm mrs no-list">
           {{range .Nav}}
             <li style="margin-left: {{.Depth}}px"><a href="{{.Path}}" class="async {{if .Active}}b{{else}}black{{end}}">{{.Title}}</a></li>
           {{end}}
