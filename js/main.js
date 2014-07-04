@@ -320,6 +320,7 @@ for (var i=0; i<events.length; i++) {
 }
 
 function navigate(path, fromBackButton) {
+  nav.setProps({path: path});
   ajax.get(path, function(r) {
     var res = JSON.parse(r);
     if (res.ok) {
@@ -328,7 +329,6 @@ function navigate(path, fromBackButton) {
       editor.setValue(res.text, -1);
       document.title = res.title;
       !fromBackButton && window.history.pushState(null, res.title, path);
-      nav.setProps({path: path});
       setTimeout(function() {
         hide(save);
         show(cancel);
