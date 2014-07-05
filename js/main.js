@@ -98,9 +98,10 @@ var Icon = React.createClass({
 
 
 function pathsToTree(links) {
-  var byPath = {};
+  var byPath = {'/': {title: 'Home', children: [], path: "/"}};
   for (var i = 0, l = links.length; i < l; i++) {
     var path = links[i].path;
+    if (!path) continue;
     byPath[path] = links[i];
     links[i].children = [];
     if (path == '/') continue;

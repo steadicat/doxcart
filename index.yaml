@@ -15,3 +15,10 @@ indexes:
   properties:
   - name: Date
     direction: desc
+
+- kind: PageVersion
+  ancestor: yes
+  properties:
+  - name: Deleted
+  - name: Date
+    direction: desc

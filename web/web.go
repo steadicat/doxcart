@@ -14,12 +14,12 @@ var loginTemplate = template.Must(template.ParseFiles("html/login.html"))
 func loginPage(w http.ResponseWriter, r *http.Request) {
   c := appengine.NewContext(r)
 
-   loginUrl, _ := user.LoginURL(c, r.URL.Path)
-   err := loginTemplate.Execute(w, loginUrl)
-   if err != nil {
-     ErrorPage(c, w, err)
-     return
-   }
+	loginUrl, _ := user.LoginURL(c, r.URL.Path)
+	err := loginTemplate.Execute(w, loginUrl)
+	if err != nil {
+		ErrorPage(c, w, err)
+		return
+	}
 }
 
 func GetDomain(c appengine.Context) string {

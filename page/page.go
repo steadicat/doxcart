@@ -8,11 +8,20 @@ import (
   "appengine/memcache"
   "appengine/search"
   "appengine/delay"
-  "dropbox"
+  "dropbox/write"
   "web"
 )
 
 type PageVersion struct {
+  Path string
+  Content string `datastore:",noindex"`
+  Html search.HTML `datastore:",noindex"`
+  Date time.Time
+  Author string
+	Deleted bool
+}
+
+type IndexedPage struct {
   Path string
   Content string `datastore:",noindex"`
   Html search.HTML `datastore:",noindex"`
@@ -35,10 +44,10 @@ func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
     return nil, nil
   }
 
-  if len(versions) == 0 {
+  if len(versions) == 0 || versions[0].Deleted {
     return &PageVersion{
-      Content: "Type using Markdown...",
-      Html: search.HTML("Empty page. Click edit to create it."),
+      Content: "New page. Click edit to create it.",
+      Html: search.HTML("New page. Click edit to create it."),
       Date: time.Now(),
     }, nil
   } else {
@@ -97,30 +106,36 @@ var afterGet = delay.Func("AfterPageGet", func(c appengine.Context, domain strin
   }
 })
 
-func Set(c appengine.Context, path string, text string, html string, author string) error {
+func Set(c appengine.Context, domain string, path string, text string, html string, author string, deleted bool, fromDropbox bool) error {
   version := PageVersion{
     Path: path,
     Content: text,
     Html: search.HTML(html),
     Date: time.Now(),
     Author: author,
+		Deleted: deleted,
   }
 
   key := datastore.NewIncompleteKey(c, "PageVersion", pageKey(c, path))
   _, err := datastore.Put(c, key, &version)
   if err != nil { return err }
 
-  domain := web.GetDomain(c)
-  afterSet.Call(c, domain, version)
+  afterSet.Call(c, domain, version, fromDropbox)
 
   return nil
 }
 
-var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain string, version PageVersion) {
+var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain string, version PageVersion, fromDropbox bool) {
   c, err := appengine.Namespace(c, domain)
   if err != nil {
     c.Warningf("Error setting namespace %v: %v", domain, err.Error())
+		return
   }
+
+	if version.Deleted {
+		version.Content = "New page. Click edit to create it."
+		version.Html = search.HTML("New page. Click edit to create it.")
+	}
 
   err = cachePageContent(c, version.Path, version.Content, string(version.Html))
   if err != nil {
@@ -130,18 +145,35 @@ var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain strin
   index, err := search.Open("pages")
   if err != nil {
     c.Warningf("Error opening search index: %v", err.Error())
+		return
   }
 
-  c.Infof("Indexing %s", version.Path)
-  _, err = index.Put(c, version.Path, &version)
-  if err != nil {
-    c.Warningf("Error indexing %v: %v", version.Path, err.Error())
-  }
+	if version.Deleted {
+		err = index.Delete(c, version.Path)
+		if err != nil {
+			c.Warningf("Error removing %v from index: %v", version.Path, err.Error())
+		}
+	} else {
+		c.Infof("Indexing %s", version.Path)
+		indexed := IndexedPage{
+			Path: version.Path,
+			Content: version.Content,
+			Html: version.Html,
+			Date: version.Date,
+			Author: version.Author,
+		}
+		_, err = index.Put(c, version.Path, &indexed)
+		if err != nil {
+			c.Warningf("Error indexing %v: %v", version.Path, err.Error())
+		}
+	}
 
-  c.Infof("Saving to Dropbox: %s", version.Path)
-  err = dropbox.SaveFile(c, domain, version.Path, version.Content)
-  if err != nil {
-    c.Warningf("Error saving %v to dropbox: %v", version.Path, err.Error())
-  }
+	if !fromDropbox {
+		c.Infof("Saving to Dropbox: %s", version.Path)
+		err = dropboxWrite.SaveFile(c, domain, version.Path, version.Content)
+		if err != nil {
+			c.Warningf("Error saving %v to dropbox: %v", version.Path, err.Error())
+		}
+	}
 })
 

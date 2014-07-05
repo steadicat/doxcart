@@ -11,7 +11,9 @@ import (
   "page"
   "web"
   "sitemap"
-  "dropbox"
+  "dropbox/common"
+  "dropbox/read"
+  "dropbox/write"
   "crypto/md5"
   "github.com/mjibson/appstats"
 )
@@ -19,7 +21,8 @@ import (
 func init() {
   http.HandleFunc("/favicon.ico", web.NotFound)
   http.HandleFunc("/robots.txt", web.NotFound)
-	dropbox.Init()
+	dropboxRead.Init()
+	dropboxWrite.Init()
   http.Handle("/s", appstats.NewHandler(searchHandler))
   http.Handle("/", appstats.NewHandler(root))
 }
@@ -80,7 +83,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   }()
   go func() {
     var err error
-    token, err = dropbox.GetToken(c, domain)
+    token, err = dropboxCommon.GetToken(c, domain)
     errc <- err
   }()
   go func() {
@@ -152,16 +155,17 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   }
 
   u := user.Current(c)
+  domain := web.GetDomain(c)
   var nav []sitemap.NavLink
 
   errc := make(chan error)
   go func() {
-    err := page.Set(c, r.URL.Path, body.Text, body.Html, u.String())
+    err := page.Set(c, domain, r.URL.Path, body.Text, body.Html, u.Email, false, false)
     errc <- err
   }()
   go func() {
     var err error
-    nav, err = sitemap.Add(c, r.URL.Path)
+    nav, err = sitemap.Add(c, domain, r.URL.Path)
     errc <- err
   }()
   err1, err2 := <-errc, <-errc

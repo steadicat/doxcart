@@ -17,7 +17,7 @@ func Get(c appengine.Context, key string) ([]byte, error) {
 }
 
 func Set(c appengine.Context, key string, value []byte) error {
-  c.Infof("Cacheing: %v, %v", key, string(value))
+  c.Infof("Caching: %v, %v", key, string(value))
   return memcache.Set(c, &memcache.Item{
     Key: key,
     Value: value,

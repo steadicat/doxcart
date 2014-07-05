@@ -32,6 +32,9 @@ func formatTitle(bit string) string {
 }
 
 func pathToNavLink(path string, currentPath string) NavLink {
+  if path == "" {
+    path = "/"
+  }
   bits := strings.Split(path, "/")
   depth := len(bits)
   title := bits[len(bits) - 1]
@@ -62,6 +65,7 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
 
   nav := []NavLink{}
   for _, path := range paths {
+    c.Infof("Adding %v to %v, %v", path, nav, cached)
     nav = append(nav, pathToNavLink(path, currentPath))
   }
   return nav, nil
@@ -102,7 +106,7 @@ func (a ByPath) Len() int           { return len(a) }
 func (a ByPath) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByPath) Less(i, j int) bool { return a[i].Path < a[j].Path }
 
-func Add(c appengine.Context, path string) ([]NavLink, error) {
+func Add(c appengine.Context, domain string, path string) ([]NavLink, error) {
   p := Page{path}
   _, err := datastore.Put(c, datastore.NewKey(c, "Page", path, 0, nil), &p)
   if err != nil { return []NavLink{}, err }
@@ -120,7 +124,24 @@ func Add(c appengine.Context, path string) ([]NavLink, error) {
   for _, path := range nav {
     paths = append(paths, path.Path)
   }
-  afterGet.Call(c, web.GetDomain(c), key, strings.Join(paths, ","))
+  afterGet.Call(c, domain, key, strings.Join(paths, ","))
+
+  return nav, nil
+}
+
+func Remove(c appengine.Context, domain string, path string) ([]NavLink, error) {
+  err := datastore.Delete(c, datastore.NewKey(c, "Page", path, 0, nil))
+  if err != nil { return []NavLink{}, err }
+  nav, err := Get(c, path)
+  if err != nil { return []NavLink{}, err }
+
+  paths := []string{}
+  for _, p := range nav {
+    if p.Path != path {
+      paths = append(paths, p.Path)
+    }
+  }
+  afterGet.Call(c, domain, key, strings.Join(paths, ","))
 
   return nav, nil
 }
@@ -129,7 +150,7 @@ func fetch(c appengine.Context) ([]string, error) {
   q := datastore.NewQuery("Page")
   var pages []Page
   _, err := q.GetAll(c, &pages)
-  if (err != nil) { return nil, err }
+  if err != nil { return nil, err }
   var paths []string
   for _, page := range pages {
     paths = append(paths, page.Path)

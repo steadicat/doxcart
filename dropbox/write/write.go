@@ -1,18 +1,19 @@
-package dropbox
+package dropboxWrite
 
 import (
+  "bytes"
+  "net/url"
+  "net/http"
+  "io/ioutil"
+  "encoding/json"
   "appengine"
   "appengine/user"
   "appengine/urlfetch"
   "appengine/datastore"
-  "encoding/json"
-  "net/url"
-  "net/http"
-  "io/ioutil"
-  "bytes"
   "web"
   "cache"
   "config"
+	"dropbox/common"
 )
 
 const dropboxEndpoint = "https://www.dropbox.com/1/oauth2/authorize"
@@ -35,7 +36,6 @@ func getCallbackUrl() string {
 }
 
 func getLoginUrl() string {
-
   v := url.Values{}
   v.Set("response_type", "code")
   v.Set("client_id", config.DropboxAppKey)
@@ -50,13 +50,6 @@ func setupHandler(w http.ResponseWriter, r *http.Request) {
   c := appengine.NewContext(r)
   c.Infof("Redirecting to: %v", u)
   http.Redirect(w, r, u, http.StatusFound)
-}
-
-type ServiceToken struct {
-  User string
-  Service string
-  Token string
-  Id string
 }
 
 func oauthHandler(w http.ResponseWriter, r *http.Request) {
@@ -85,9 +78,13 @@ func oauthHandler(w http.ResponseWriter, r *http.Request) {
   }
   c.Infof("HTTP POST returned %v", string(body))
   response := make(map[string]string)
-  json.Unmarshal(body, &response)
-  c.Infof("Unmarshaled to %v", response)
-  err = setToken(c, response["access_token"], response["uid"])
+  err = json.Unmarshal(body, &response)
+  if err != nil {
+    web.ErrorPage(c, w, err)
+    return
+  }
+
+  err = dropboxCommon.SetToken(c, user.Current(c).Email, response["access_token"], response["uid"], "")
   if err != nil {
     web.ErrorPage(c, w, err)
     return
@@ -101,7 +98,7 @@ func disconnectHandler(w http.ResponseWriter, r *http.Request) {
   if done == true { return }
 
   domain := web.GetDomain(c)
-  token, err := GetToken(c, domain)
+  token, err := dropboxCommon.GetToken(c, domain)
   if err != nil {
     web.ErrorPage(c, w, err)
     return
@@ -140,46 +137,14 @@ func clearToken(c appengine.Context, token string) error {
   return err
 }
 
-func setToken(c appengine.Context, accessToken string, uid string) error {
-  email := user.Current(c).Email
-  serviceToken := ServiceToken{
-    email,
-    "dropbox",
-    accessToken,
-    uid,
-  }
-  c.Infof("Obj %v", serviceToken)
-  domain := web.GetDomain(c)
-  _, err := datastore.Put(c, datastore.NewKey(c, "ServiceToken", domain + "/dropbox", 0, nil), &serviceToken)
-  if err != nil { return err }
-  err = cache.Set(c, "dropbox:" + domain, []byte(accessToken))
-  return err
-}
-
-func GetToken(c appengine.Context, domain string) (string, error) {
-  accessToken, err := cache.Get(c, "dropbox:" + domain)
-  if err != nil { return "", err }
-  if accessToken != nil { return string(accessToken), nil }
-
-  serviceToken := ServiceToken{}
-  err = datastore.Get(c, datastore.NewKey(c, "ServiceToken", domain + "/dropbox", 0, nil), &serviceToken)
-  if err == datastore.ErrNoSuchEntity {
-    err = cache.Set(c, "dropbox:" + domain, []byte(""))
-    return "", nil
-  }
-  if err != nil { return "", err }
-  err = cache.Set(c, "dropbox:" + domain, []byte(serviceToken.Token))
-  return serviceToken.Token, nil
-}
-
 func SaveFile(c appengine.Context, domain string, path string, content string) error {
-  token, err := GetToken(c, domain)
+  token, err := dropboxCommon.GetToken(c, domain)
   if err != nil { return err }
   if token == "" { return nil }
 
   if path == "/" { path = "/home" }
 
-  u := "https://api-content.dropbox.com/1/files_put/dropbox/Doxcart" + path + ".md"
+  u := "https://api-content.dropbox.com/1/files_put/dropbox" + dropboxCommon.PathPrefix + path + ".md"
   c.Infof("Putting to %v", u)
   req, err := http.NewRequest("PUT", u, bytes.NewBufferString(content))
   if err != nil { return err }
@@ -194,3 +159,4 @@ func SaveFile(c appengine.Context, domain string, path string, content string) e
   c.Infof("Got %v", string(body))
   return nil
 }
+
