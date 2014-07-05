@@ -8,7 +8,7 @@ function debounce(f) {
     timeout = setTimeout(function() {
       timeout = null;
       f();
-    }, 500);
+    }, 200);
   }
 }
 
