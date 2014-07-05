@@ -148,9 +148,10 @@ var Nav = React.createClass({
   },
 
   countExpandedChildren: function(children) {
-    return children.length + (children.map(function(child) {
-      return 1 + this.state.expanded[child.path] ? this.countExpandedChildren(child.children) : 0;
-    }.bind(this))).reduce(function(a,b) { return a+b }, 0);
+    if (!children || !children.length) return 0;
+    return children.map(function(child) {
+      return 1 + (this.state.expanded[child.path] ? this.countExpandedChildren(child.children) : 0);
+    }.bind(this)).reduce(function(a,b) { return a+b }, 0);
   },
 
   render: function() {
