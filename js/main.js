@@ -481,7 +481,7 @@ marked.setOptions({
   tables: true,
   breaks: false,
   pedantic: false,
-  sanitize: true,
+  sanitize: false,
   smartLists: true,
   smartypants: true,
   highlight: function (code) {
