@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var browserify = require('gulp-browserify');
+var uglify = require('gulp-uglify');
 
 gulp.task('js', function() {
   gulp.src('js/main.js')
@@ -9,6 +10,8 @@ gulp.task('js', function() {
       debug: false,
       transform: ['reactify']
     }))
+    .on('error', gutil.log)
+    .pipe(uglify())
     .on('error', gutil.log)
     .pipe(gulp.dest('build/js'))
     .on('error', gutil.log);

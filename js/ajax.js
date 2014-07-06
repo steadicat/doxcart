@@ -38,7 +38,10 @@ ajax.send = function(u,f,m,a) {
   var x = ajax.x();
   x.open(m, u, true);
   x.onreadystatechange = function() {
-    if (x.readyState == 4) f(x.responseText);
+    if (x.readyState == 4) {
+      ajax.progress && ajax.progress.end();
+      f(JSON.parse(x.responseText));
+    }
   };
   if (m != 'GET') {
     if (typeof a == 'object') {
@@ -62,6 +65,7 @@ ajax.send = function(u,f,m,a) {
   });
 
   try {
+    ajax.progress && ajax.progress.start();
     x.send(a);
   } catch (e) {
     f({meta: {error: {error_description: 'Could not connect to the server. Is your Internet working?'}}});

@@ -46,22 +46,6 @@
       <pre id="editor" class="block full-height full-width">{{.Text}}</pre>
     </div>
     <div id="toolbar"></div>
-    <div class="fixed top full-width left sans text-xs">
-      <div class="mrm phs rel">
-        <div class="abs top right mrm mts">
-          <a class="phs" href="?history" id="history">History</a>
-          <a class="phs pointer" id="historyCancel" style="display: none">Cancel</a>
-          <button class="phs button pointer" id="edit">Edit</button>
-          <span id="editing" style="display: none">
-            <a class="phs pointer" id="emacs">Emacs</a>
-            <a class="phs pointer" id="vim">VIM</a>
-            <a class="phs pointer" id="reset" style="display: none">Reset Keys</a>
-            <button class="phs mls button pointer" id="cancel" style="display: none">Cancel</button>
-            <button class="phs mls button pointer" id="save" style="display: none">Save</button>
-          </span>
-        </div>
-      </div>
-    </div>
     <div id="progress" />
     <script src="/js/ace/ace.js"></script>
     <script src="/js/ace/keybinding-vim.js"></script>
