@@ -13,12 +13,12 @@ import (
 )
 
 type PageVersion struct {
-  Path string
-  Content string `datastore:",noindex"`
-  Html search.HTML `datastore:",noindex"`
-  Date time.Time
-  Author string
-	Deleted bool
+  Path string `json:"path"`
+  Content string `json:"-" datastore:",noindex"`
+  Html search.HTML `json:"-" datastore:",noindex"`
+  Date time.Time `json:"date"`
+  Author string `json:"author"`
+  Deleted bool `json:"deleted"`
 }
 
 type IndexedPage struct {
@@ -29,14 +29,14 @@ type IndexedPage struct {
   Author string
 }
 
-func pageKey(c appengine.Context, url string) *datastore.Key {
+func PageKey(c appengine.Context, url string) *datastore.Key {
   return datastore.NewKey(c, "PageVersion", url, 0, nil)
 }
 
 func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
 
   c.Infof("Fetching latest version: %v", path)
-  q := datastore.NewQuery("PageVersion").Ancestor(pageKey(c, path)).Order("-Date").Limit(1)
+  q := datastore.NewQuery("PageVersion").Ancestor(PageKey(c, path)).Order("-Date").Limit(1)
   versions := make([]PageVersion, 0, 1)
 
   _, err := q.GetAll(c, &versions)
@@ -116,7 +116,7 @@ func Set(c appengine.Context, domain string, path string, text string, html stri
 		Deleted: deleted,
   }
 
-  key := datastore.NewIncompleteKey(c, "PageVersion", pageKey(c, path))
+  key := datastore.NewIncompleteKey(c, "PageVersion", PageKey(c, path))
   _, err := datastore.Put(c, key, &version)
   if err != nil { return err }
 

@@ -65,7 +65,6 @@ func Get(c appengine.Context, currentPath string) ([]NavLink, error) {
 
   nav := []NavLink{}
   for _, path := range paths {
-    c.Infof("Adding %v to %v, %v", path, nav, cached)
     nav = append(nav, pathToNavLink(path, currentPath))
   }
   return nav, nil

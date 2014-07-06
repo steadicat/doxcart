@@ -3,19 +3,20 @@ package main
 import (
   "fmt"
 	"strings"
-  "html/template"
   "net/http"
+  "crypto/md5"
   "encoding/json"
+  "html/template"
   "appengine"
   "appengine/user"
-  "page"
-  "web"
-  "sitemap"
+  "github.com/mjibson/appstats"
   "dropbox/common"
   "dropbox/read"
   "dropbox/write"
-  "crypto/md5"
-  "github.com/mjibson/appstats"
+  "sitemap"
+  "page"
+  "web"
+	"history"
 )
 
 func init() {
@@ -47,7 +48,13 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
   if r.Header.Get("Accept") == "application/json" {
+		if strings.HasSuffix(r.URL.String(), "?history") {
+			history.Handle(c, w, r, path)
+			return
+		}
+
     text, html, err := page.Get(c, path)
     if err != nil {
       web.ErrorJson(c, w, err)
@@ -110,7 +117,6 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     web.ErrorPage(c, w, err4)
     return
   }
-
 
   data := struct {
     Text string

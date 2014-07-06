@@ -48,7 +48,7 @@ func getLoginUrl() string {
 func setupHandler(w http.ResponseWriter, r *http.Request) {
   u := getLoginUrl()
   c := appengine.NewContext(r)
-  c.Infof("Redirecting to: %v", u)
+  c.Infof("Redirecting to %v", u)
   http.Redirect(w, r, u, http.StatusFound)
 }
 
