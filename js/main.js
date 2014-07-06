@@ -1,4 +1,8 @@
-var cx = React.addons.classSet;
+var react = require('./react');
+var ajax = require('./ajax');
+var marked = require('./marked');
+
+var cx = react.addons.classSet;
 var ge = document.getElementById.bind(document);
 
 function debounce(f) {
@@ -9,7 +13,7 @@ function debounce(f) {
       timeout = null;
       f();
     }, 200);
-  }
+  };
 }
 
 function getCookies() {
@@ -49,11 +53,11 @@ var icons = {
   }
 };
 
-var Icon = React.createClass({
+var Icon = react.createClass({
   render: function() {
     if (!this.props.icon) {
       return this.transferPropsTo(
-        React.DOM.div(
+        react.DOM.div(
           {
             className: 'ib',
             style: {width: 16, height: 16}
@@ -62,7 +66,7 @@ var Icon = React.createClass({
       );
     }
     return this.transferPropsTo(
-      React.DOM.canvas(
+      react.DOM.canvas(
         {
           width: 32,
           height: 32,
@@ -117,14 +121,14 @@ function pathsToTree(links) {
   return byPath['/'];
 };
 
-var Nav = React.createClass({
+var Nav = react.createClass({
 
   getInitialState: function() {
     return {expanded: this.getExpandedMap({}, this.props.path)};
   },
 
   onLinkClick: function(path, e) {
-    if (history.pushState) {
+    if (window.history.pushState) {
       navigate(path);
       e.preventDefault();
     }
@@ -158,12 +162,12 @@ var Nav = React.createClass({
   render: function() {
     var tree = this.props.search || [pathsToTree(this.props.nav)];
     var children = this.renderChildren(tree, true, true);
-    return children ? this.transferPropsTo(children) : React.DOM.span();
+    return children ? this.transferPropsTo(children) : react.DOM.span();
   },
 
   renderChildren: function(children, expanded, root) {
     if (!children || !children.length) return null;
-    return React.DOM.ul(
+    return react.DOM.ul(
       {
         className: cx({
           'mlm':  !root,
@@ -186,7 +190,7 @@ var Nav = React.createClass({
     var current = child.path == this.props.path;
     var expanded = this.state.expanded[child.path];
     var hasChildren = child.children && !!child.children.length;
-    return React.DOM.li(
+    return react.DOM.li(
       {
         key: child.path,
         className: 'nobr'
@@ -202,7 +206,7 @@ var Nav = React.createClass({
         color: '#aaa',
         onClick: this.toggle.bind(this, child.path)
       }),
-      React.DOM.a(
+      react.DOM.a(
         {
           href: child.path,
           className: cx({
@@ -218,12 +222,7 @@ var Nav = React.createClass({
   }
 });
 
-var nav = React.renderComponent(
-  Nav({nav: navLinks, path: path, className: 'mts', style: {marginLeft: -8}}),
-  ge('navList')
-);
-
-var Progress = React.createClass({
+var Progress = react.createClass({
 
   getInitialState: function() {
     return {progress: 0};
@@ -265,8 +264,8 @@ var Progress = React.createClass({
   },
 
   render: function() {
-    if (this.state.progress == 0) return React.DOM.div();
-    return React.DOM.div(
+    if (this.state.progress == 0) return react.DOM.div();
+    return react.DOM.div(
       {
         className: 'fixed top left blue-bg t-width',
         style: {height: 2, width: (this.state.progress * 100) + '%'}
@@ -276,12 +275,103 @@ var Progress = React.createClass({
 
 });
 
-var progress = React.renderComponent(
-  Progress({}),
-  ge('progress')
-);
-
 ajax.progress = progress;
+
+
+var History = react.createClass({
+
+  isCreation: function(i) {
+    return (
+      (i == this.props.versions.length - 1) ||
+        ((i < this.props.versions.length - 1) && (this.props.versions[i + 1].deleted))
+    );
+  },
+
+  getAction: function(version, i) {
+    if (i == this.props.versions.length - 1) return 'Created by ';
+    if (this.isCreation(i)) return 'Recreated by ';
+    if (version.deleted) return 'Deleted by ';
+    return 'Edited by ';
+  },
+
+  render: function() {
+    return react.DOM.ul(
+      {
+        className: 'sans no-list',
+        style: {marginLeft: 0}
+      },
+      this.props.versions.map(this.renderVersion)
+    );
+  },
+
+  renderVersion: function(version, i) {
+    return (
+      react.DOM.li(
+        {
+          className: cx({
+            'rel': true,
+            'mbs': true,
+            'red': version.deleted,
+            'green': this.isCreation(i)
+          })
+        },
+        this.getAction(version, i),
+        react.DOM.span(
+          {
+            className: 'b'
+          },
+          version.author
+        ),
+        react.DOM.div(
+          {
+            className: 'gray aa text-xs'
+          },
+          new Date(Date.parse(version.date)).toLocaleString()
+        ),
+        !version.deleted && false && react.DOM.div(
+          {
+            className: 'abs top right'
+          },
+          react.DOM.a(
+            {},
+            'Restore'
+          ),
+          react.DOM.a(
+            {
+              className: 'mlm'
+            },
+            'View'
+          )
+        )
+      )
+    )
+  }
+
+});
+
+var Toolbar = react.createClass({
+  render: function() {
+    return react.DOM.div({});
+  }
+});
+
+function showHistory(e) {
+  if (e) e.preventDefault();
+  window.history.pushState && window.history.pushState(null, null, window.location.pathname + '?history');
+  show(historyCancel);
+  hide(editorCol);
+  hide(edit);
+  hide(historyButton);
+  show(contentCol);
+  show(cancel);
+  progress.start();
+  ajax.get(window.location.pathname + '?history', function(res) {
+    progress.end();
+    var doc = JSON.parse(res);
+    if (!doc.ok) return;
+    react.renderComponent(History({versions: doc.versions}), body);
+  });
+}
 
 function setAttribute(attr, value, el) {
   el.setAttribute(attr, value);
@@ -329,6 +419,8 @@ var search = ge('search');
 var emacs = ge('emacs');
 var vim = ge('vim');
 var reset = ge('reset');
+var historyButton = ge('history');
+var historyCancel = ge('historyCancel');
 
 var handlers = {
   click: {
@@ -374,7 +466,8 @@ var handlers = {
     },
     emacs: setKeysEmacs,
     vim: setKeysVim,
-    reset: setKeysNone
+    reset: setKeysNone,
+    history: showHistory
   },
   keyup: {
     search: doSearch
@@ -401,7 +494,8 @@ document.body.addEventListener('click', function(e) {
   if (e.target.tagName == 'A') {
     var url = new URL(e.target.href);
     if ((url.hostname == window.location.hostname) &&
-        (url.pathname[1] !== '_')) {
+        (url.pathname[1] !== '_') &&
+        (url.search !== '?history')) {
       e.preventDefault();
       navigate(url.pathname);
     }
@@ -433,17 +527,6 @@ window.addEventListener('popstate', function(event) {
 });
 
 
-var editor = ace.edit("editor");
-editor.setTheme('ace/theme/tomorrow');
-editor.getSession().setMode("ace/mode/markdown");
-editor.setFontSize(14);
-editor.setHighlightActiveLine(false);
-editor.setShowPrintMargin(false);
-editor.renderer.setShowGutter(false);
-editor.renderer.setPadding(32);
-editor.session.setUseWrapMode(true);
-editor.session.setTabSize(2);
-
 function setKeysEmacs() {
   hide(emacs);
   hide(vim);
@@ -468,13 +551,6 @@ function setKeysNone() {
   editor.setKeyboardHandler(null);
 }
 
-var cookies = getCookies();
-if (cookies.keys == 'emacs') {
-  setKeysEmacs();
-} else if (cookies.keys == 'vim') {
-  setKeysVim();
-}
-
 marked.setOptions({
   renderer: new marked.Renderer(),
   gfm: true,
@@ -489,8 +565,44 @@ marked.setOptions({
   }
 });
 
-editor.getSession().on('change', debounce(function(e) {
-  hide(cancel);
-  show(save);
-  body.innerHTML = marked(editor.getValue());
-}));
+
+var nav, progress, editor;
+
+window['main'] = function(path, navLinks) {
+  nav = react.renderComponent(
+    Nav({nav: navLinks, path: path, className: 'mts', style: {marginLeft: -8}}),
+    ge('navList')
+  );
+  progress = react.renderComponent(
+    Progress({}),
+    ge('progress')
+  );
+
+  editor = ace.edit("editor");
+  editor.setTheme('ace/theme/tomorrow');
+  editor.getSession().setMode("ace/mode/markdown");
+  editor.setFontSize(14);
+  editor.setHighlightActiveLine(false);
+  editor.setShowPrintMargin(false);
+  editor.renderer.setShowGutter(false);
+  editor.renderer.setPadding(32);
+  editor.session.setUseWrapMode(true);
+  editor.session.setTabSize(2);
+
+  editor.getSession().on('change', debounce(function(e) {
+    hide(cancel);
+    show(save);
+    body.innerHTML = marked(editor.getValue());
+  }));
+
+  if (window.location.search == '?history') {
+    showHistory();
+  }
+
+  var cookies = getCookies();
+  if (cookies.keys == 'emacs') {
+    setKeysEmacs();
+  } else if (cookies.keys == 'vim') {
+    setKeysVim();
+  }
+};

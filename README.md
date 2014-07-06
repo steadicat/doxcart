@@ -22,3 +22,8 @@ The `config` module contains the secret keys and therefore is not included in th
 ### Start your engine
 
     $ goapp serve
+
+### JS preprocessing (optional)
+
+    $ npm install
+    $ gulp

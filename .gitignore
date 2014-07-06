@@ -1,2 +1,4 @@
 /Doxcart.sublime-project
 /config/config.go
+/node_modules/
+/build/

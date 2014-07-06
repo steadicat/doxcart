@@ -9,6 +9,7 @@ table { border-collapse: collapse; }
 /* Layout */
 
 html .abs { position: absolute; }
+.rel { position: relative; }
 .fixed { position: fixed; }
 .block { display: block; }
 .ib { display: inline-block; }
@@ -32,6 +33,7 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
 .sans, table { font-size: 14px; font-family: 'Lato', sans-serif; }
 #editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 90%; }
 .b { font-weight: bold; }
+.aa { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 .left-align { text-align: left; }
 .right-align { text-align: right; }
@@ -87,7 +89,9 @@ html { background: #fff; }
 html, .black { color: #333; }
 .blue-bg { background: #3be; }
 .border-gray { border-color: #eee; }
-
+.gray { color: #aaa; }
+.red { color: #e46; }
+.green { color: #4a8; }
 
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }

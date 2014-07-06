@@ -45,10 +45,12 @@
     <div id="editorCol" class="top fixed top right half-width full-height ptl bb border-left border-gray"  style="display: none">
       <pre id="editor" class="block full-height full-width">{{.Text}}</pre>
     </div>
+    <div id="toolbar"></div>
     <div class="fixed top full-width left sans text-xs">
       <div class="mrm phs rel">
         <div class="abs top right mrm mts">
-          <a class="phs" href="?history">History</a>
+          <a class="phs" href="?history" id="history">History</a>
+          <a class="phs pointer" id="historyCancel" style="display: none">Cancel</a>
           <button class="phs button pointer" id="edit">Edit</button>
           <span id="editing" style="display: none">
             <a class="phs pointer" id="emacs">Emacs</a>
@@ -61,14 +63,11 @@
       </div>
     </div>
     <div id="progress" />
-    <script src="//cdnjs.cloudflare.com/ajax/libs/react/0.10.0/react-with-addons.min.js"></script>
-    <script src="/js/ajax.js"></script>
-    <script src="/js/marked.js"></script>
-    <script src="/js/highlight.min.js"></script>
     <script src="/js/ace/ace.js"></script>
     <script src="/js/ace/keybinding-vim.js"></script>
     <script src="/js/ace/keybinding-emacs.js"></script>
-    <script>var navLinks = {{.Nav}}; var path = {{.CurrentUrl}};</script>
+    <script src="/js/highlight.js"></script>
     <script src="/js/main.js"></script>
+    <script>main({{.CurrentUrl}}, {{.Nav}});</script>
   </body>
 </html>
