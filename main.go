@@ -48,6 +48,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Vary", "Accept")
 
   if r.Header.Get("Accept") == "application/json" {
 		if strings.HasSuffix(r.URL.String(), "?history") {
