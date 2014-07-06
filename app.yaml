@@ -14,10 +14,15 @@ handlers:
   script: _go_app
 
 skip_files:
-- ^js/
-- ^node_modules/
-- ^gulpfile\.js$
-- ^package\.json$
-- ^README\.md$
-- \.sublime-project$
-- \.sublime-workspace$
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- ^js/.*$
+- ^(.*/)?node_modules/.*$
+- ^(.*/)?gulpfile\.js$
+- ^(.*/)?package\.json$
+- ^(.*/)?README\.md$
+- ^(.*/)?.*\.sublime-project$
+- ^(.*/)?.*\.sublime-workspace$
