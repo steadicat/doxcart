@@ -1,11 +1,11 @@
-function debounce(f) {
+function debounce(f, delay) {
   var timeout;
   return function() {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(function() {
       timeout = null;
       f();
-    }, 200);
+    }, delay || 200);
   };
 }
 
