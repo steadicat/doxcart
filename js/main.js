@@ -6,6 +6,7 @@ var cookie = require('./cookie');
 var Home = require('./ui/Home');
 
 window.history.pushState && document.body.addEventListener('click', function(e) {
+  if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
   if (e.target.href) {
     var url = new URL(e.target.href);
     if ((url.hostname == window.location.hostname) &&
