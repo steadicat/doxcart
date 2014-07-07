@@ -19,11 +19,11 @@ The `config` module contains the secret keys and therefore is not included in th
 
     $ cp config/config.go.sample config/config.go
 
-### Start your engine
-
-    $ goapp serve
-
-### JS preprocessing (optional)
+### Start the JS preprocessing script
 
     $ npm install
     $ gulp
+
+### Start your engine
+
+    $ goapp serve
