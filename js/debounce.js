@@ -1,10 +1,11 @@
 function debounce(f, delay) {
   var timeout;
   return function() {
+    var self = this;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(function() {
       timeout = null;
-      f();
+      f.call(self);
     }, delay || 200);
   };
 }

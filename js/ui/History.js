@@ -29,6 +29,7 @@ var History = react.createClass({
   renderVersion: function(version, i) {
     return (
       <li
+        key={i}
         className={cx({
           rel: true,
           mbs: true,

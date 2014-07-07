@@ -119,26 +119,34 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
+	type Data struct {
+		Title string `json:"title"`
+		Text string `json:"text"`
+		Path string `json:"path"`
+		LogoutUrl string `json:"logoutUrl"`
+		Nav []sitemap.NavLink `json:"nav"`
+		User string `json:"user"`
+		Gravatar string `json:"gravatar"`
+		Dropbox bool `json:"dropbox"`
+	}
+
   data := struct {
-    Text string
-    Html template.HTML
-    CurrentUrl string
-    LogoutUrl string
-    Nav []sitemap.NavLink
-    User string
     Title string
-    Gravatar string
-    Dropbox bool
-  } {
-    text,
-    html,
-    path,
-    logout,
-    nav,
-    user.Current(c).Email,
+		Html template.HTML
+		Data Data
+  }{
     sitemap.GetTitle(r.URL.Path, domain),
-    fmt.Sprintf("//www.gravatar.com/avatar/%x", md5.Sum([]byte(user.Current(c).Email))),
-    token != "",
+    html,
+		Data {
+			sitemap.GetTitle(r.URL.Path, domain),
+			text,
+			path,
+			logout,
+			nav,
+			user.Current(c).Email,
+			fmt.Sprintf("//www.gravatar.com/avatar/%x", md5.Sum([]byte(user.Current(c).Email))),
+			token != "",
+		},
   }
 
   err := homeTemplate.Execute(w, data)

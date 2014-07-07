@@ -3,19 +3,10 @@ var react = require('./react');
 var ajax = require('./ajax');
 var marked = require('./marked');
 var cookie = require('./cookie');
-var debounce = require('./debounce');
-var Nav = require('./ui/Nav');
-var Progress = require('./ui/Progress');
-var Toolbar = require('./ui/Toolbar');
-var History = require('./ui/History');
-
-var SEARCH_DELAY = 200;
-var EDIT_DELAY = 200;
-
-var ge = document.getElementById.bind(document);
+var Home = require('./ui/Home');
 
 window.history.pushState && document.body.addEventListener('click', function(e) {
-  if (e.target.tagName == 'A') {
+  if (e.target.href) {
     var url = new URL(e.target.href);
     if ((url.hostname == window.location.hostname) &&
         (url.pathname[1] !== '_')) {
@@ -31,78 +22,21 @@ window.addEventListener('popstate', function(event) {
 
 function navigate(path, search, fromBackButton) {
   var history = search == '?history';
-  nav.setProps({path: path});
-  toolbar.setProps({path: path, history: history});
+  dispatcher('navigate', {path: path, history: history});
   !fromBackButton && window.history.pushState(null, null, path + search);
-  !history && ajax.get(path, function(res) {
-    if (!res.ok) return;
-    document.title = res.title;
-    body.innerHTML = res.html;
-    title.innerHTML = res.title;
-    editor.setValue(res.text, -1);
-    // Undo the change event fired on the editor
-    setTimeout(toolbar.setUnchanged.bind(toolbar), EDIT_DELAY);
-  });
-}
-
-var progress = ajax.progress = react.renderComponent(<Progress />, document.getElementById('progress'));
-
-function onHistoryToggle(on) {
-  hide(editorCol);
-  show(contentCol);
-  on && ajax.get(window.location.pathname + '?history', function(res) {
-    if (!res.ok) return;
-    react.renderComponent(<History versions={res.versions} />, body);
-  });
-  !on && (body.innerHTML = marked(editor.getValue()));
-}
-
-function setAttribute(attr, value, el) {
-  el.setAttribute(attr, value);
-}
-function setStyle(style, value, el) {
-  el.style[style] = value;
-}
-
-var show = setStyle.bind(null, 'display', '');
-var hide = setStyle.bind(null, 'display', 'none');
-function toggle(el, on) {
-  (on ? show : hide)(el);
-}
-
-function addClass(cls, el) {
-  setAttribute('class', el.className + ' ' + cls, el);
-}
-function removeClass(cls, el) {
-  setAttribute('class', el.className.replace(new RegExp('(\\s+|^)'+cls+'(\\s+|$)', 'g'), ' '), el);
-}
-function toggleClass(cls, el, on) {
-  (on ? addClass : removeClass)(cls, el);
-}
-
-var doSearch = debounce(function() {
-  if (!search.value) {
-    nav.setProps({search: null});
+  if (history) {
+    ajax.get(path + '?history', function(res) {
+      if (!res.ok) return;
+      dispatcher('historyUpdate', res.versions);
+    });
   } else {
-    ajax.get('/s?q=' + encodeURIComponent(search.value), function(res) {
-      nav.setProps({search: res});
+    ajax.get(path, function(res) {
+      if (!res.ok) return;
+      dispatcher('docUpdate', res);
+      document.title = res.title;
     });
   }
-}, SEARCH_DELAY);
-
-var navCol = ge('navCol');
-var editorCol = ge('editorCol');
-var contentCol = ge('contentCol');
-var content = ge('content');
-var title = ge('title');
-var body = ge('body');
-var search = ge('search');
-
-document.body.addEventListener('keyup', function(e) {
-  if (e.target.id == 'search') {
-    doSearch();
-  }
-});
+}
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -118,59 +52,81 @@ marked.setOptions({
   }
 });
 
-function onEditToggle(on) {
-  search.value = '';
-  doSearch();
-  toggle(navCol, !on);
-  toggle(editorCol, on);
-  editor.resize();
-  toggleClass('half-width', contentCol, on);
-  toggleClass('half-width', content, !on);
+var home, data;
+
+function update(change) {
+  home.setProps({data: window['data'] = data = react.addons.update(data, change)});
 }
 
-var nav, progress, editor, toolbar;
-
-function onNavUpdate(n) {
-  nav.setProps({nav: n});
+function dispatcher(event, info) {
+  switch (event) {
+    case 'editOn':
+    return update({editing: {$set: true}});
+    case 'edit':
+    return update({
+      changed: {$set: true},
+      text: {$set: info},
+      html: {$set: marked(info)}
+    });
+    case 'editOff':
+    return update({editing: {$set: false}});
+    case 'save':
+    return ajax.put(window.location.pathname, {
+      text: data.text,
+      html: marked(data.text)
+    }, function(res) {
+      dispatcher('saved');
+      res.nav && dispatcher('navUpdate', res.nav);
+    });
+    case 'saved':
+    return update({changed: {$set: false}, editing: {$set: false}});
+    case 'navigate':
+    return update({
+      path: {$set: info.path},
+      history: {$set: info.history},
+      changed: {$set: false},
+      editing: {$set: false}
+    });
+    case 'search':
+    return update({
+      search: {$set: info}
+    });
+    case 'docUpdate':
+    return update({
+      title: {$set: info.title},
+      text: {$set: info.text},
+      html: {$set: marked(info.text)},
+      versions: {$set: []}
+    });
+    case 'navUpdate':
+    return update({nav: {$set: info}});
+    case 'historyUpdate':
+    return update({versions: {$set: info}});
+    case 'setKeys':
+    info ? cookie.set('keys', info) : cookie.del('keys');
+    return update({keys: {$set: info}});
+  }
 }
 
-window['main'] = function(path, navLinks) {
-  nav = react.renderComponent(
-    <Nav
-      nav={navLinks}
-      path={path}
-      className="mts"
-      style={{marginLeft: -8}}
-    />,
-    ge('navList')
+window['main'] = function(initialData) {
+  data = react.addons.update(
+    initialData,
+    {
+      keys: {$set: cookie.get('keys')},
+      history: {$set: window.location.search == '?history'},
+      versions: {$set: []},
+      editing: {$set: false},
+      changed: {$set: false},
+      search: {$set: null},
+      html: {$set: marked(initialData.text)}
+    }
   );
-
-  editor = ace.edit("editor");
-  editor.setTheme('ace/theme/tomorrow');
-  editor.getSession().setMode("ace/mode/markdown");
-  editor.setFontSize(14);
-  editor.setHighlightActiveLine(false);
-  editor.setShowPrintMargin(false);
-  editor.renderer.setShowGutter(false);
-  editor.renderer.setPadding(32);
-  editor.session.setUseWrapMode(true);
-  editor.session.setTabSize(2);
-
-  toolbar = react.renderComponent(
-    <Toolbar
-      path={path}
-      history={window.location.search == '?history'}
-      editor={editor}
-      onEditToggle={onEditToggle}
-      onHistoryToggle={onHistoryToggle}
-      onNavUpdate={onNavUpdate}
+  home = react.renderComponent(
+    <Home
+      data={window['data'] = data}
+      onEvent={dispatcher}
     />,
-    ge('toolbar')
+    document.getElementById('home')
   );
-
-  editor.getSession().on('change', debounce(function(e) {
-    toolbar.onChange();
-    body.innerHTML = marked(editor.getValue());
-  }, EDIT_DELAY));
 
 };

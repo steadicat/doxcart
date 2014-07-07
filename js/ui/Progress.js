@@ -1,10 +1,15 @@
 /** @jsx react.DOM **/
 var react = require('../react');
+var ajax = require('../ajax');
 
 var Progress = react.createClass({
 
   getInitialState: function() {
     return {progress: 0};
+  },
+
+  componentDidMount: function() {
+    ajax.progress = this;
   },
 
   start: function() {

@@ -26,11 +26,11 @@ function pathsToTree(links) {
 var Nav = react.createClass({
 
   getInitialState: function() {
-    return {expanded: this.getExpandedMap({}, this.props.path)};
+    return {expanded: this.getExpandedMap({}, this.props.data.path)};
   },
 
   componentWillReceiveProps: function(nextProps) {
-    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.path)})
+    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.data.path)})
   },
 
   getExpandedMap: function(expanded, path) {
@@ -55,7 +55,7 @@ var Nav = react.createClass({
   },
 
   render: function() {
-    var tree = this.props.search || [pathsToTree(this.props.nav)];
+    var tree = this.props.data.search || [pathsToTree(this.props.data.nav)];
     var children = this.renderChildren(tree, true, true);
     return children ? this.transferPropsTo(children) : <span/>;
   },
@@ -82,7 +82,7 @@ var Nav = react.createClass({
   },
 
   renderChild: function(child) {
-    var current = child.path == this.props.path;
+    var current = child.path == this.props.data.path;
     var expanded = this.state.expanded[child.path];
     var hasChildren = child.children && !!child.children.length;
     return (
