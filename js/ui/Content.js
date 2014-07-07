@@ -15,7 +15,7 @@ var Content = react.createClass({
         'full-height': true,
         'scroll': true
       })}>
-        <div className={cx({
+        <div id="content" className={cx({
           'pal': true,
           'centered': true,
           'half-width': !this.props.data.editing
