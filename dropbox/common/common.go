@@ -25,7 +25,7 @@ func SetToken(c appengine.Context, email string, accessToken string, uid string,
     uid,
 		cursor,
   }
-  c.Infof("Obj %v", serviceToken)
+
   domain := strings.Split(email, "@")[1]
 
   gc, err := appengine.Namespace(c, "")

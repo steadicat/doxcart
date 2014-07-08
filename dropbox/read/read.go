@@ -84,12 +84,6 @@ var afterWebhook = delay.Func("AfterWebhook", func(c appengine.Context, userIds 
 			return
 		}
 
-		err = cache.Clear(c, "sitemap")
-		if err != nil {
-			c.Warningf("Error clearing sitemap cache: %v", err.Error())
-			return
-		}
-
 	}
 })
 
@@ -132,6 +126,9 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 		c.Warningf("Error parsing /delta JSON for Dropbox user %v: %v", domain, err.Error())
 		return false, ""
 	}
+
+	changed := false
+
 	for _, entry := range response.Entries {
 		pair := entry.([]interface{})
 		path := pair[0].(string)
@@ -146,6 +143,7 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 				path = "/"
 			}
 			c.Infof("File deleted: %v", path)
+			changed = true
 			err = page.Set(c, domain, path, "", "", "Dropbox", true, true)
 			if err != nil {
 				c.Warningf("Error deleting file %v: %v", path, err.Error())
@@ -165,6 +163,7 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 		}
 
 		c.Infof("File changed: %v", path)
+		changed = true
 
 		u := "https://api-content.dropbox.com/1/files/dropbox" + dropboxCommon.PathPrefix + path + ".md"
 		c.Infof("Getting %v", u)
@@ -203,6 +202,15 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 	}
 
 	if !response.HasMore {
+
+		if (changed) {
+			err = cache.Clear(c, "sitemap")
+			if err != nil {
+				c.Warningf("Error clearing sitemap cache: %v", err.Error())
+				return false, ""
+			}
+		}
+
 		dropboxCommon.SetToken(c, serviceToken.User, serviceToken.Token, serviceToken.Id, response.Cursor)
 		if err != nil {
 			c.Warningf("Error saving Dropbox cursor %v: %v", response.Cursor, err.Error())
