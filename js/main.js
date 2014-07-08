@@ -130,4 +130,8 @@ window['main'] = function(initialData) {
     document.getElementById('home')
   );
 
+  if (window.location.search == '?history') {
+    navigate(initialData.path, window.location.search, true);
+  }
+
 };
