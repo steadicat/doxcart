@@ -33,10 +33,15 @@ var Editor = react.createClass({
     if (prevProps.data.editing !== this.props.data.editing) {
       this.editor.resize();
     }
-    if ((this.props.data.text !== prevProps.data.text) && (this.props.data.path !== this._currentPath)) {
+    if ((this.props.data.text !== prevProps.data.text) && this.isNewDoc(prevProps)) {
       this.editor.setValue(this.props.data.text, -1);
       this._currentPath = this.props.data.path;
     }
+  },
+
+  isNewDoc: function(prevProps) {
+    return (this.props.data.path !== this._currentPath) ||
+      (this.props.data.changedByOthersText !== prevProps.data.changedByOthersText);
   },
 
   onChange: function() {

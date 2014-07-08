@@ -97,8 +97,16 @@ function dispatcher(event, info) {
       title: {$set: info.title},
       text: {$set: info.text},
       html: {$set: marked(info.text)},
-      versions: {$set: []}
+      versions: {$set: []},
+      changedBy: {$set: null},
+      changedByOthersText: {$set: null}
     });
+    case 'docUpdateByOthers':
+    if ((info.path === data.path) && (info.text !== data.text)) update({
+      changedBy: {$set: info.author},
+      changedByOthersText: {$set: info.text}
+    });
+    return;
     case 'navUpdate':
     return update({nav: {$set: info}});
     case 'historyUpdate':
@@ -133,5 +141,21 @@ window['main'] = function(initialData) {
   if (window.location.search == '?history') {
     navigate(initialData.path, window.location.search, true);
   }
+
+  var channel = new goog.appengine.Channel(initialData.token);
+  channel.open({
+    onopen: function() {
+    },
+    onmessage: function(m) {
+      var msg = JSON.parse(m.data);
+      if (msg.event == 'pageUpdate') {
+        dispatcher('docUpdateByOthers', msg.info);
+      }
+    },
+    onerror: function() {
+    },
+    onclose: function() {
+    }
+  });
 
 };

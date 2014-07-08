@@ -92,6 +92,9 @@ html, .black { color: #333; }
 .gray { color: #aaa; }
 .red { color: #e46; }
 .green { color: #4a8; }
+.yellow-bg { background: #eb4; }
+.red-bg { background: #e46; }
+.white { color: #fff; }
 
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }

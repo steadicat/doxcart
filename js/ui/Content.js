@@ -17,6 +17,7 @@ var Content = react.createClass({
       })}>
         <div id="content" className={cx({
           'pal': true,
+          'rel': true,
           'centered': true,
           'half-width': !this.props.data.editing
          })}>

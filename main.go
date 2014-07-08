@@ -17,6 +17,7 @@ import (
   "page"
   "web"
 	"history"
+	"pubsub"
 )
 
 func init() {
@@ -119,6 +120,19 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     return
   }
 
+	email := user.Current(c).Email
+	channelToken, err := pubsub.GetToken(c, email)
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
+
+	err = pubsub.Sub(c, email, "page:" + path)
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
+
 	type Data struct {
 		Title string `json:"title"`
 		Text string `json:"text"`
@@ -128,6 +142,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		User string `json:"user"`
 		Gravatar string `json:"gravatar"`
 		Dropbox bool `json:"dropbox"`
+		Token string `json:"token"`
 	}
 
   data := struct {
@@ -146,10 +161,11 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 			user.Current(c).Email,
 			fmt.Sprintf("//www.gravatar.com/avatar/%x", md5.Sum([]byte(user.Current(c).Email))),
 			token != "",
+			channelToken,
 		},
   }
 
-  err := homeTemplate.Execute(w, data)
+  err = homeTemplate.Execute(w, data)
   if err != nil {
     web.ErrorPage(c, w, err)
     return
@@ -193,6 +209,24 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
     web.ErrorPage(c, w, err2)
     return
   }
+
+	type Info struct {
+		Path string `json:"path"`
+		Text string `json:"text"`
+		Author string `json:"author"`
+	}
+	err = pubsub.Pub(c, "page:" + r.URL.Path, struct{
+		Event string `json:"event"`
+		Info Info `json:"info"`
+	}{"pageUpdate", Info{
+		r.URL.Path,
+		body.Text,
+		u.Email,
+	}})
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
 
   response := struct{
     Ok bool `json:"ok"`
