@@ -32,14 +32,17 @@ var History = react.createClass({
         key={i}
         className={cx({
           rel: true,
-          mbs: true,
+          mbm: true,
           red: version.deleted,
           green: this.isCreation(i)
         })}>
-        {this.getAction(version, i)}
-        <span className="b">{version.author}</span>
-        <div className="gray aa text-xs">
-          {new Date(Date.parse(version.date)).toLocaleString()}
+        {version.author !== (this.props.versions[i-1] && this.props.versions[i-1].author) ? <img src={version.gravatar} className="ib top mrm" style={{width: 40, height: 40, borderRadius: 20, marginTop: 2}} /> : <div className="ib" style={{width: 10, height: 10, margin: 15, marginRight: 32, borderRadius: 20, background: '#eee'}} />}
+        <div className="ib top">
+          {this.getAction(version, i)}
+          <span className="b">{version.author}</span>
+          <div className="gray aa text-xs">
+            {new Date(Date.parse(version.date)).toLocaleString()}
+          </div>
         </div>
         {!version.deleted && <div className="abs top right">
           <a className="mlm" href={i == 0 ? this.props.path : ('?rev=' + version.rev)}>View</a>
