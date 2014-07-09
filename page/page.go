@@ -107,7 +107,7 @@ func Get(c appengine.Context, path string, rev string) (string, template.HTML, e
   }
 
   domain := web.GetDomain(c)
-  afterGet.Call(c, domain, path, version.Content, string(version.Html))
+  afterGet.Call(c, domain, path, rev, version.Content, string(version.Html))
 
   return version.Content, template.HTML(string(version.Html)), nil
 }
