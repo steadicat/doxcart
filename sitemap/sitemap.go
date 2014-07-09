@@ -28,8 +28,9 @@ const key = "sitemap"
 func formatTitle(bit string) string {
   bit = strings.Join(strings.Split(bit, "_"), " ")
   bit = strings.Join(strings.Split(bit, "-"), " ")
-  bit = strings.Replace(strings.Title(bit), "Ios", "iOS", -1)
-  bit = strings.Replace(strings.Title(bit), "Css", "CSS", -1)
+  bit = strings.Title(bit)
+  bit = strings.Replace(bit, "Ios", "iOS", -1)
+  bit = strings.Replace(bit, "Css", "CSS", -1)
   return bit
 }
 
