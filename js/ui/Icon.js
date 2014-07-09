@@ -1,5 +1,4 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 
 var icons = {
   right: function(ctx) {
@@ -13,7 +12,7 @@ var icons = {
   }
 };
 
-var Icon = react.createClass({
+var Icon = React.createClass({
   render: function() {
     if (!this.props.icon) {
       return this.transferPropsTo(

@@ -1,7 +1,6 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 
-var Toolbar = react.createClass({
+var Toolbar = React.createClass({
 
   onEdit: function() {
     this.props.onEvent('editOn');

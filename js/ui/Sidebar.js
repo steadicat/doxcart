@@ -1,9 +1,8 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var Nav = require('./Nav');
 var Search = require('./Search');
 
-var Sidebar = react.createClass({
+var Sidebar = React.createClass({
   render: function() {
     return (
       <div className="top left fixed full-height quarter-width scroll text-xs sans" style={{display: this.props.data.editing ? 'none' : null}}>

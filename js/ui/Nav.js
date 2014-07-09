@@ -1,8 +1,7 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var cookie = require('../cookie');
 var Icon = require('./Icon');
-var cx = react.addons.classSet;
+var cx = React.addons.classSet;
 
 function pathsToTree(links) {
   var byPath = {'/': {title: 'Home', children: [], path: "/"}};
@@ -24,7 +23,7 @@ function pathsToTree(links) {
   return byPath['/'];
 };
 
-var Nav = react.createClass({
+var Nav = React.createClass({
 
   getInitialState: function() {
     return {expanded: this.getExpandedMap(this.loadExpandedMap(), this.props.data.path)};

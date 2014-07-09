@@ -1,11 +1,10 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var debounce = require('../debounce');
 var ajax = require('../ajax');
 
 var SEARCH_DELAY = 200;
 
-var Search = react.createClass({
+var Search = React.createClass({
 
   onKeyUp: debounce(function() {
     var val = this.getDOMNode().value;

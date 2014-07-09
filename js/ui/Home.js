@@ -1,5 +1,4 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var Nav = require('./Nav');
 var Editor = require('./Editor');
 var Content = require('./Content');
@@ -7,7 +6,7 @@ var Sidebar = require('./Sidebar');
 var Toolbar = require('./Toolbar');
 var Progress = require('./Progress');
 
-var Home = react.createClass({
+var Home = React.createClass({
 
   update: function() {
     this.props.data.editing && this.props.onEvent('editOff');

@@ -16,12 +16,13 @@
         </div>
       </div>
     </div>
-    <script src="/js/ace/ace.js"></script>
-    <script src="/js/ace/keybinding-vim.js"></script>
-    <script src="/js/ace/keybinding-emacs.js"></script>
-    <script src="/js/highlight.js"></script>
-    <script src="/_ah/channel/jsapi"></script>
-    <script src="/js/main.js"></script>
-    <script>main({{.Data}});</script>
+    <script defer src="//cdnjs.cloudflare.com/ajax/libs/react/0.10.0/react-with-addons.min.js"></script>
+    <script defer src="//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"></script>
+    <script defer src="//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/keybinding-emacs.js"></script>
+    <script defer src="//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/keybinding-vim.js"></script>
+    <script defer src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/highlight.min.js"></script>
+    <script defer src="/_ah/channel/jsapi"></script>
+    <script>var data = {{.Data}};</script>
+    <script defer src="/js/main.js"></script>
   </body>
 </html>

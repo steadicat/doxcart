@@ -1,5 +1,4 @@
-/** @jsx react.DOM **/
-var react = require('./react');
+/** @jsx React.DOM **/
 var ajax = require('./ajax');
 var marked = require('./marked');
 var cookie = require('./cookie');
@@ -57,10 +56,10 @@ marked.setOptions({
   }
 });
 
-var home, data;
+var home;
 
 function update(change) {
-  home.setProps({data: window['data'] = data = react.addons.update(data, change)});
+  home.setProps({data: window['data'] = React.addons.update(window['data'], change)});
 }
 
 function dispatcher(event, info) {
@@ -68,7 +67,7 @@ function dispatcher(event, info) {
     case 'editOn':
     return update({
       editing: {$set: true},
-      changed: {$set: !!data.rev}
+      changed: {$set: !!window['data'].rev}
     });
     case 'edit':
     return update({
@@ -80,8 +79,8 @@ function dispatcher(event, info) {
     return update({editing: {$set: false}});
     case 'save':
     return ajax.put(window.location.pathname, {
-      text: data.text,
-      html: marked(data.text)
+      text: window['data'].text,
+      html: marked(window['data'].text)
     }, function(res) {
       dispatcher('saved');
       res.nav && dispatcher('navUpdate', res.nav);
@@ -114,7 +113,7 @@ function dispatcher(event, info) {
       changedByOthersText: {$set: null}
     });
     case 'docUpdateByOthers':
-    if ((info.path === data.path) && (info.text !== data.text)) update({
+    if ((info.path === window['data'].path) && (info.text !== window['data'].text)) update({
       changedBy: {$set: info.author},
       changedByOthersText: {$set: info.text}
     });
@@ -132,8 +131,8 @@ function dispatcher(event, info) {
   }
 }
 
-window['main'] = function(initialData) {
-  data = react.addons.update(
+function main(initialData) {
+  window['data'] = React.addons.update(
     initialData,
     {
       keys: {$set: cookie.get('keys')},
@@ -145,9 +144,9 @@ window['main'] = function(initialData) {
       html: {$set: marked(initialData.text)}
     }
   );
-  home = react.renderComponent(
+  home = React.renderComponent(
     <Home
-      data={window['data'] = data}
+      data={window['data']}
       onEvent={dispatcher}
     />,
     document.getElementById('home')
@@ -173,4 +172,6 @@ window['main'] = function(initialData) {
     }
   });
 
-};
+}
+
+main(window['data']);

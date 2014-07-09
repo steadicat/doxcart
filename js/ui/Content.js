@@ -1,9 +1,8 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var History = require('./History');
-var cx = react.addons.classSet;
+var cx = React.addons.classSet;
 
-var Content = react.createClass({
+var Content = React.createClass({
 
   render: function() {
     return (

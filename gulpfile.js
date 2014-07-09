@@ -11,7 +11,7 @@ gulp.task('js', function() {
       transform: ['reactify']
     }))
     .on('error', gutil.log)
-    //.pipe(uglify())
+    .pipe(uglify())
     .on('error', gutil.log)
     .pipe(gulp.dest('build/js'))
     .on('error', gutil.log);

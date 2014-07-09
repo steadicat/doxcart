@@ -1,10 +1,9 @@
-/** @jsx react.DOM **/
-var react = require('../react');
+/** @jsx React.DOM **/
 var debounce = require('../debounce');
 
 var EDIT_DELAY = 200;
 
-var Editor = react.createClass({
+var Editor = React.createClass({
 
   componentWillMount: function() {
     this._initialText = this.props.data.text;

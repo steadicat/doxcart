@@ -1,8 +1,7 @@
-/** @jsx react.DOM **/
-var react = require('../react');
-var cx = react.addons.classSet;
+/** @jsx React.DOM **/
+var cx = React.addons.classSet;
 
-var History = react.createClass({
+var History = React.createClass({
 
   isCreation: function(i) {
     return (
