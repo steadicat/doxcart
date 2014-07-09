@@ -1,5 +1,6 @@
 /** @jsx react.DOM **/
 var react = require('../react');
+var cookie = require('../cookie');
 var Icon = require('./Icon');
 var cx = react.addons.classSet;
 
@@ -26,11 +27,24 @@ function pathsToTree(links) {
 var Nav = react.createClass({
 
   getInitialState: function() {
-    return {expanded: this.getExpandedMap({}, this.props.data.path)};
+    return {expanded: this.getExpandedMap(this.loadExpandedMap(), this.props.data.path)};
   },
 
   componentWillReceiveProps: function(nextProps) {
     this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.data.path)})
+  },
+
+  loadExpandedMap: function() {
+    var paths = (cookie.get('expanded') || '').split('|');
+    var expanded = {};
+    for (var i = 0, l = paths.length; i < l; i++) {
+      expanded[paths[i]] = true;
+    }
+    return expanded;
+  },
+
+  saveExpandedMap: function(expanded) {
+    cookie.set('expanded', Object.keys(expanded).join('|'));
   },
 
   getExpandedMap: function(expanded, path) {
@@ -43,8 +57,13 @@ var Nav = react.createClass({
 
   toggle: function(path, e) {
     e.preventDefault();
-    this.state.expanded[path] = !this.state.expanded[path];
+    if (this.state.expanded[path]) {
+      delete this.state.expanded[path];
+    } else {
+      this.state.expanded[path] = true;
+    }
     this.setState({expanded: this.state.expanded});
+    this.saveExpandedMap(this.state.expanded);
   },
 
   countExpandedChildren: function(children) {
