@@ -33,7 +33,6 @@ cookie.get = function(name) {
 cookie.set = function(name, value) {
   var date = new Date();
   date.setTime(date.getTime()+(30*24*60*60*1000));
-  console.log(name+'='+value+'; expires=' + date.toGMTString()+'; path=/');
   document.cookie = name+'='+value+'; expires=' + date.toGMTString()+'; path=/';
 }
 
