@@ -36,16 +36,15 @@ var Home = react.createClass({
           data={this.props.data}
           onEvent={this.props.onEvent}
         />
-        {this.props.data.changedBy && this.props.data.editing && <div className="abs top-left full-width red-bg white text-xs sans pvs center-align">
-           This doc was just changed by {this.props.data.changedBy}. Please save your changes elsewhere then
-           {' '}
-           <a className="b white pointer" onClick={this.update}>update</a>.
-         </div>}
-        {this.props.data.changedBy && !this.props.data.editing && <div className="abs top-left full-width yellow-bg white text-xs sans pvs center-align">
+        {this.props.data.changedBy && this.props.data.editing && <div className="abs top-left full-width red-bg white text-xs sans pvs center-align pointer" onClick={this.update}>
            This doc was just changed by {this.props.data.changedBy}.
            {' '}
-           <a className="b white pointer" onClick={this.update}>Click here</a> to update.
+           {this.props.data.changed ? 'Please make note of your changes elsewhere then update.' : 'Click here to update before you make any changes.'}
          </div>}
+        {this.props.data.changedBy && !this.props.data.editing && <a className="fixed top-left full-width yellow-bg white text-xs sans pvs center-align pointer block" onClick={this.update}>
+           This doc was just changed by {this.props.data.changedBy}.
+           Click here to update.
+         </a>}
         <Progress />
       </div>
     );
