@@ -82,6 +82,7 @@ html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; l
 /* Borders */
 .border-bottom { border-bottom: 1px solid; }
 .border-left { border-left: 1px solid; }
+.rounded { border-radius: 3px; }
 
 /* Colors */
 a, .blue { color: #3be; }

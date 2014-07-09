@@ -41,7 +41,9 @@ var Editor = react.createClass({
 
   isNewDoc: function(prevProps) {
     return (this.props.data.path !== this._currentPath) ||
-      (this.props.data.changedByOthersText !== prevProps.data.changedByOthersText);
+      (this.props.data.changedByOthersText !== prevProps.data.changedByOthersText) ||
+      (this.props.data.rev !== prevProps.data.rev);
+;
   },
 
   onChange: function() {

@@ -23,7 +23,11 @@ window.addEventListener('popstate', function(event) {
 
 function navigate(path, search, fromBackButton) {
   var history = search == '?history';
-  dispatcher('navigate', {path: path, history: history});
+  var rev;
+  if (search.substring(0, 5) == '?rev=') {
+    rev = search.substring(5);
+  }
+  dispatcher('navigate', {path: path, history: history, rev: rev});
   !fromBackButton && window.history.pushState(null, null, path + search);
   if (history) {
     ajax.get(path + '?history', function(res) {
@@ -31,9 +35,9 @@ function navigate(path, search, fromBackButton) {
       dispatcher('historyUpdate', res.versions);
     });
   } else {
-    ajax.get(path, function(res) {
+    ajax.get(path + search, function(res) {
       if (!res.ok) return;
-      dispatcher('docUpdate', res);
+      dispatcher('docUpdate', {doc: res, rev: rev});
       document.title = res.title;
     });
   }
@@ -62,7 +66,10 @@ function update(change) {
 function dispatcher(event, info) {
   switch (event) {
     case 'editOn':
-    return update({editing: {$set: true}});
+    return update({
+      editing: {$set: true},
+      changed: {$set: !!data.rev}
+    });
     case 'edit':
     return update({
       changed: {$set: true},
@@ -80,7 +87,11 @@ function dispatcher(event, info) {
       res.nav && dispatcher('navUpdate', res.nav);
     });
     case 'saved':
-    return update({changed: {$set: false}, editing: {$set: false}});
+    return update({
+      changed: {$set: false},
+      editing: {$set: false},
+      rev: {$set: null}
+    });
     case 'navigate':
     return update({
       path: {$set: info.path},
@@ -94,9 +105,10 @@ function dispatcher(event, info) {
     });
     case 'docUpdate':
     return update({
-      title: {$set: info.title},
-      text: {$set: info.text},
-      html: {$set: marked(info.text)},
+      title: {$set: info.doc.title},
+      text: {$set: info.doc.text},
+      html: {$set: marked(info.doc.text)},
+      rev: {$set: info.rev},
       versions: {$set: []},
       changedBy: {$set: null},
       changedByOthersText: {$set: null}
@@ -110,7 +122,10 @@ function dispatcher(event, info) {
     case 'navUpdate':
     return update({nav: {$set: info}});
     case 'historyUpdate':
-    return update({versions: {$set: info}});
+    return update({
+      versions: {$set: info},
+      rev: {$set: null}
+    });
     case 'setKeys':
     info ? cookie.set('keys', info) : cookie.del('keys');
     return update({keys: {$set: info}});
@@ -138,7 +153,7 @@ window['main'] = function(initialData) {
     document.getElementById('home')
   );
 
-  if (window.location.search == '?history') {
+  if (window.location.search) {
     navigate(initialData.path, window.location.search, true);
   }
 

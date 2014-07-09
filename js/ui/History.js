@@ -41,10 +41,8 @@ var History = react.createClass({
         <div className="gray aa text-xs">
           {new Date(Date.parse(version.date)).toLocaleString()}
         </div>
-        {!version.deleted && false && <div
-          className="abs top right">
-          <a>Restore</a>
-          <a className="mlm">View</a>
+        {!version.deleted && <div className="abs top right">
+          <a className="mlm" href={i == 0 ? this.props.path : ('?rev=' + version.rev)}>View</a>
         </div>}
       </li>
     )

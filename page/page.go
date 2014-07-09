@@ -3,6 +3,7 @@ package page
 import (
   "html/template"
   "time"
+	"strconv"
   "appengine"
   "appengine/datastore"
   "appengine/memcache"
@@ -33,16 +34,24 @@ func PageKey(c appengine.Context, url string) *datastore.Key {
   return datastore.NewKey(c, "PageVersion", url, 0, nil)
 }
 
-func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
+func getVersion(c appengine.Context, path string, rev string) (*PageVersion, error) {
 
-  c.Infof("Fetching latest version: %v", path)
-  q := datastore.NewQuery("PageVersion").Ancestor(PageKey(c, path)).Order("-Date").Limit(1)
-  versions := make([]PageVersion, 0, 1)
+	if rev != "" {
+		id, err := strconv.ParseInt(rev, 10, 64)
+		c.Infof("Fetching version %v of %v", id, path)
+		if err != nil {	return nil, err	}
+		version := PageVersion{}
+		err = datastore.Get(c, datastore.NewKey(c, "PageVersion", "", id, PageKey(c, path)), &version)
+		if err != nil {	return nil, err	}
+		return &version, nil
+	}
 
-  _, err := q.GetAll(c, &versions)
-  if err != nil {
-    return nil, nil
-  }
+	c.Infof("Fetching latest version: %v", path)
+	q := datastore.NewQuery("PageVersion").Ancestor(PageKey(c, path)).Order("-Date").Limit(1)
+	versions := make([]PageVersion, 0, 1)
+
+	_, err := q.GetAll(c, &versions)
+	if err != nil {	return nil, err	}
 
   if len(versions) == 0 || versions[0].Deleted {
     return &PageVersion{
@@ -55,9 +64,13 @@ func getLatestVersion(c appengine.Context, path string) (*PageVersion, error) {
   }
 }
 
-func cachePageContent(c appengine.Context, path string, text string, html string) error {
-  textKey := "text:" + path
-  htmlKey := "html:" + path
+func cachePageContent(c appengine.Context, path string, rev string, text string, html string) error {
+	revSuffix := ""
+	if rev != "" {
+		revSuffix = ":" + rev
+	}
+  textKey := "text:" + path + revSuffix
+  htmlKey := "html:" + path + revSuffix
   contentItem := &memcache.Item{
     Key: textKey,
     Value: []byte(text),
@@ -69,9 +82,13 @@ func cachePageContent(c appengine.Context, path string, text string, html string
   return memcache.SetMulti(c, []*memcache.Item{contentItem, htmlItem})
 }
 
-func Get(c appengine.Context, path string) (string, template.HTML, error) {
-  textKey := "text:" + path
-  htmlKey := "html:" + path
+func Get(c appengine.Context, path string, rev string) (string, template.HTML, error) {
+	revSuffix := ""
+	if rev != "" {
+		revSuffix = ":" + rev
+	}
+  textKey := "text:" + path + revSuffix
+  htmlKey := "html:" + path + revSuffix
   cached, err := memcache.GetMulti(c, []string{textKey, htmlKey});
   if err != nil && err != memcache.ErrCacheMiss {
     return "", template.HTML(""), err
@@ -84,7 +101,7 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
 
   c.Infof("Cache miss: %v, %v", textKey, htmlKey)
 
-  version, err := getLatestVersion(c, path)
+  version, err := getVersion(c, path, rev)
   if err != nil {
     return "", template.HTML(""), err
   }
@@ -95,12 +112,12 @@ func Get(c appengine.Context, path string) (string, template.HTML, error) {
   return version.Content, template.HTML(string(version.Html)), nil
 }
 
-var afterGet = delay.Func("AfterPageGet", func(c appengine.Context, domain string, path string, text string, html string) {
+var afterGet = delay.Func("AfterPageGet", func(c appengine.Context, domain string, path string, rev string, text string, html string) {
   c, err := appengine.Namespace(c, domain)
   if err != nil {
     c.Warningf("Error setting namespace %v: %v", domain, err.Error())
   }
-  err = cachePageContent(c, path, text, html)
+  err = cachePageContent(c, path, rev, text, html)
   if err != nil {
     c.Warningf("Error caching page %v: %v", path, err.Error())
   }
@@ -137,7 +154,7 @@ var afterSet = delay.Func("AfterPageSet", func(c appengine.Context, domain strin
 		version.Html = search.HTML("New page. Click edit to create it.")
 	}
 
-  err = cachePageContent(c, version.Path, version.Content, string(version.Html))
+  err = cachePageContent(c, version.Path, "", version.Content, string(version.Html))
   if err != nil {
     c.Warningf("Error caching page %v: %v", version.Path, err.Error())
   }

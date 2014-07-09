@@ -57,7 +57,8 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-    text, html, err := page.Get(c, path)
+		r.ParseForm()
+    text, html, err := page.Get(c, path, r.Form.Get("rev"))
     if err != nil {
       web.ErrorJson(c, w, err)
       return
@@ -87,7 +88,8 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
   }()
   go func() {
     var err error
-    text, html, err = page.Get(c, path)
+		r.ParseForm()
+    text, html, err = page.Get(c, path, r.Form.Get("rev"))
     errc <- err
   }()
   go func() {
