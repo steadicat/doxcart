@@ -20,7 +20,7 @@ import (
 )
 
 func Init() {
-  http.HandleFunc("/_/dropbox/webhook", webhookHandler)
+	http.HandleFunc("/_/dropbox/webhook", webhookHandler)
 }
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
@@ -31,24 +31,24 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, challenge)
 		return
 	}
-  decoder := json.NewDecoder(r.Body)
-  var body struct {
-    Delta struct {
+	decoder := json.NewDecoder(r.Body)
+	var body struct {
+		Delta struct {
 			Users []int
 		}
-  }
-  err := decoder.Decode(&body)
-  if err != nil {
-    c.Warningf("Error processing Dropbox webhook: %v", err.Error())
-    web.ErrorJson(c, w, err)
-    return
-  }
+	}
+	err := decoder.Decode(&body)
+	if err != nil {
+		c.Warningf("Error processing Dropbox webhook: %v", err.Error())
+		web.ErrorJson(c, w, err)
+		return
+	}
 	c.Infof("Dropbox notified us of changes to users: %v", body.Delta.Users)
 	afterWebhook.Call(c, body.Delta.Users)
 }
 
 type DeltaResponse struct {
-  HasMore bool `json:"has_more"`
+	HasMore bool `json:"has_more"`
 	Reset bool `json:"reset"`
 	Cursor string `json:"cursor"`
 	Entries []interface{} `json:"entries"`
@@ -60,7 +60,7 @@ var afterWebhook = delay.Func("AfterWebhook", func(c appengine.Context, userIds 
 
 		q := datastore.NewQuery("ServiceToken").Filter("Id =", fmt.Sprintf("%v", id)).Limit(1)
 		var tokens []dropboxCommon.ServiceToken
-  _, err := q.GetAll(c, &tokens)
+	_, err := q.GetAll(c, &tokens)
 		if err != nil {
 			c.Warningf("Error finding token for Dropbox user %v: %v", id, err.Error())
 			return
@@ -88,8 +88,8 @@ var afterWebhook = delay.Func("AfterWebhook", func(c appengine.Context, userIds 
 })
 
 func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.ServiceToken, cursor string) (bool, string) {
-  c, err := appengine.Namespace(c, domain)
-  if err != nil {
+	c, err := appengine.Namespace(c, domain)
+	if err != nil {
 		c.Warningf("Error switching to namespace %v: %v", domain, err.Error())
 		return false, ""
 	}
@@ -220,5 +220,3 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 
 	return response.HasMore, response.Cursor
 }
-
-

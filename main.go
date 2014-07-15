@@ -1,126 +1,126 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
 	"strings"
-  "net/http"
-  "crypto/md5"
-  "encoding/json"
-  "html/template"
-  "appengine"
-  "appengine/user"
-  "github.com/mjibson/appstats"
-  "dropbox/common"
-  "dropbox/read"
-  "dropbox/write"
-  "sitemap"
-  "page"
-  "web"
+	"net/http"
+	"crypto/md5"
+	"encoding/json"
+	"html/template"
+	"appengine"
+	"appengine/user"
+	"github.com/mjibson/appstats"
+	"dropbox/common"
+	"dropbox/read"
+	"dropbox/write"
+	"sitemap"
+	"page"
+	"web"
 	"history"
 	"pubsub"
 )
 
 func init() {
-  http.HandleFunc("/favicon.ico", web.NotFound)
-  http.HandleFunc("/robots.txt", web.NotFound)
+	http.HandleFunc("/favicon.ico", web.NotFound)
+	http.HandleFunc("/robots.txt", web.NotFound)
 	dropboxRead.Init()
 	dropboxWrite.Init()
-  http.Handle("/s", appstats.NewHandler(searchHandler))
-  http.Handle("/", appstats.NewHandler(root))
+	http.Handle("/s", appstats.NewHandler(searchHandler))
+	http.Handle("/", appstats.NewHandler(root))
 }
 
 var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
 
 func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
-  c, domain, done := web.Auth(c, w, r);
-  if done == true { return }
+	c, domain, done := web.Auth(c, w, r);
+	if done == true { return }
 
-  if r.Method == "PUT" {
-    save(c, w, r)
-    return
-  }
+	if r.Method == "PUT" {
+		save(c, w, r)
+		return
+	}
 
 	path := r.URL.Path
 	if path != "/" {
 		path = strings.TrimRight(r.URL.Path, "/")
 	}
-  if (path != r.URL.Path) {
+	if (path != r.URL.Path) {
 		http.Redirect(w, r, path, http.StatusMovedPermanently)
 		return
 	}
 
 	w.Header().Set("Vary", "Accept")
 
-  if r.Header.Get("Accept") == "application/json" {
+	if r.Header.Get("Accept") == "application/json" {
 		if strings.HasSuffix(r.URL.String(), "?history") {
 			history.Handle(c, w, r, path)
 			return
 		}
 
 		r.ParseForm()
-    text, html, err := page.Get(c, path, r.Form.Get("rev"))
-    if err != nil {
-      web.ErrorJson(c, w, err)
-      return
-    }
-    response := struct{
-      Ok bool `json:"ok"`
-      Text string `json:"text"`
-      Html string `json:"html"`
-      Title string `json:"title"`
-    }{true, text, string(html), sitemap.GetTitle(path, domain)}
-    encoder := json.NewEncoder(w)
-    encoder.Encode(response)
-    return
-  }
+		text, html, err := page.Get(c, path, r.Form.Get("rev"))
+		if err != nil {
+			web.ErrorJson(c, w, err)
+			return
+		}
+		response := struct{
+			Ok bool `json:"ok"`
+			Text string `json:"text"`
+			Html string `json:"html"`
+			Title string `json:"title"`
+		}{true, text, string(html), sitemap.GetTitle(path, domain)}
+		encoder := json.NewEncoder(w)
+		encoder.Encode(response)
+		return
+	}
 
-  var nav []sitemap.NavLink
-  var text string
-  var html template.HTML
-  var token string
-  var logout string
+	var nav []sitemap.NavLink
+	var text string
+	var html template.HTML
+	var token string
+	var logout string
 
-  errc := make(chan error)
-  go func() {
-    var err error
-    nav, err = sitemap.Get(c, path)
-    errc <- err
-  }()
-  go func() {
-    var err error
+	errc := make(chan error)
+	go func() {
+		var err error
+		nav, err = sitemap.Get(c, path)
+		errc <- err
+	}()
+	go func() {
+		var err error
 		r.ParseForm()
-    text, html, err = page.Get(c, path, r.Form.Get("rev"))
-    errc <- err
-  }()
-  go func() {
-    var err error
-    token, err = dropboxCommon.GetToken(c, domain)
-    errc <- err
-  }()
-  go func() {
-    var err error
-    logout, err = user.LogoutURL(c, "/")
-    errc <- err
-  }()
+		text, html, err = page.Get(c, path, r.Form.Get("rev"))
+		errc <- err
+	}()
+	go func() {
+		var err error
+		token, err = dropboxCommon.GetToken(c, domain)
+		errc <- err
+	}()
+	go func() {
+		var err error
+		logout, err = user.LogoutURL(c, "/")
+		errc <- err
+	}()
 
-  err1, err2, err3, err4 := <-errc, <-errc, <-errc, <-errc
+	err1, err2, err3, err4 := <-errc, <-errc, <-errc, <-errc
 
-  if err1 != nil {
-    web.ErrorPage(c, w, err1)
-    return
-  }
-  if err2 != nil {
-    web.ErrorPage(c, w, err2)
-    return
-  }
-  if err3 != nil {
-    web.ErrorPage(c, w, err3)
-    return
-  }
-  if err4 != nil {
-    web.ErrorPage(c, w, err4)
-    return
-  }
+	if err1 != nil {
+		web.ErrorPage(c, w, err1)
+		return
+	}
+	if err2 != nil {
+		web.ErrorPage(c, w, err2)
+		return
+	}
+	if err3 != nil {
+		web.ErrorPage(c, w, err3)
+		return
+	}
+	if err4 != nil {
+		web.ErrorPage(c, w, err4)
+		return
+	}
 
 	email := user.Current(c).Email
 	channelToken, err := pubsub.GetToken(c, email)
@@ -147,13 +147,13 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}
 
-  data := struct {
-    Title string
+	data := struct {
+		Title string
 		Html template.HTML
 		Data Data
-  }{
-    sitemap.GetTitle(r.URL.Path, domain),
-    html,
+	}{
+		sitemap.GetTitle(r.URL.Path, domain),
+		html,
 		Data {
 			sitemap.GetTitle(r.URL.Path, domain),
 			text,
@@ -165,52 +165,52 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 			token != "",
 			channelToken,
 		},
-  }
+	}
 
-  err = homeTemplate.Execute(w, data)
-  if err != nil {
-    web.ErrorPage(c, w, err)
-    return
-  }
+	err = homeTemplate.Execute(w, data)
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
 }
 
 func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
-  decoder := json.NewDecoder(r.Body)
-  var body struct {
-    Text string
-    Html string
-  }
+	decoder := json.NewDecoder(r.Body)
+	var body struct {
+		Text string
+		Html string
+	}
 
-  err := decoder.Decode(&body)
-  if err != nil {
-    web.ErrorPage(c, w, err)
-    return
-  }
+	err := decoder.Decode(&body)
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
 
-  u := user.Current(c)
-  domain := web.GetDomain(c)
-  var nav []sitemap.NavLink
+	u := user.Current(c)
+	domain := web.GetDomain(c)
+	var nav []sitemap.NavLink
 
-  errc := make(chan error)
-  go func() {
-    err := page.Set(c, domain, r.URL.Path, body.Text, body.Html, u.Email, false, false)
-    errc <- err
-  }()
-  go func() {
-    var err error
-    nav, err = sitemap.Add(c, domain, r.URL.Path)
-    errc <- err
-  }()
-  err1, err2 := <-errc, <-errc
+	errc := make(chan error)
+	go func() {
+		err := page.Set(c, domain, r.URL.Path, body.Text, body.Html, u.Email, false, false)
+		errc <- err
+	}()
+	go func() {
+		var err error
+		nav, err = sitemap.Add(c, domain, r.URL.Path)
+		errc <- err
+	}()
+	err1, err2 := <-errc, <-errc
 
-  if err1 != nil {
-    web.ErrorPage(c, w, err1)
-    return
-  }
-  if err2 != nil {
-    web.ErrorPage(c, w, err2)
-    return
-  }
+	if err1 != nil {
+		web.ErrorPage(c, w, err1)
+		return
+	}
+	if err2 != nil {
+		web.ErrorPage(c, w, err2)
+		return
+	}
 
 	type Info struct {
 		Path string `json:"path"`
@@ -230,25 +230,25 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-  response := struct{
-    Ok bool `json:"ok"`
-    Nav []sitemap.NavLink `json:"nav"`
-  }{true, nav}
-  encoder := json.NewEncoder(w)
-  encoder.Encode(response)
+	response := struct{
+		Ok bool `json:"ok"`
+		Nav []sitemap.NavLink `json:"nav"`
+	}{true, nav}
+	encoder := json.NewEncoder(w)
+	encoder.Encode(response)
 }
 
 func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) {
-  c, _, done := web.Auth(c, w, r);
-  if done == true { return }
+	c, _, done := web.Auth(c, w, r);
+	if done == true { return }
 
-  r.ParseForm()
-  results, err := sitemap.Search(c, r.Form["q"][0])
-  if err != nil {
-    web.ErrorPage(c, w, err)
-    return
-  }
+	r.ParseForm()
+	results, err := sitemap.Search(c, r.Form["q"][0])
+	if err != nil {
+		web.ErrorPage(c, w, err)
+		return
+	}
 
-  encoder := json.NewEncoder(w)
-  encoder.Encode(results)
+	encoder := json.NewEncoder(w)
+	encoder.Encode(results)
 }

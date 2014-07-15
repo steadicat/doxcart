@@ -14,18 +14,18 @@ import (
 
 type HistoryVersion struct {
 	Rev int64 `json:"rev"`
-  Path string `json:"path"`
-  Date time.Time `json:"date"`
-  Author string `json:"author"`
-  Gravatar string `json:"gravatar"`
-  Deleted bool `json:"deleted"`
+	Path string `json:"path"`
+	Date time.Time `json:"date"`
+	Author string `json:"author"`
+	Gravatar string `json:"gravatar"`
+	Deleted bool `json:"deleted"`
 }
 
 func Handle(c appengine.Context, w http.ResponseWriter, r *http.Request, path string) {
 
-  q := datastore.NewQuery("PageVersion").Ancestor(page.PageKey(c, path)).Order("-Date")
-  var versions []page.PageVersion
-  keys, err := q.GetAll(c, &versions)
+	q := datastore.NewQuery("PageVersion").Ancestor(page.PageKey(c, path)).Order("-Date")
+	var versions []page.PageVersion
+	keys, err := q.GetAll(c, &versions)
 	if err != nil {
 		web.ErrorJson(c, w, err)
 		return
