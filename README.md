@@ -21,6 +21,8 @@ The `config` module contains the secret keys and therefore is not included in th
 
 ### Start the JS preprocessing script
 
+    $ brew install npm
+    $ sudo npm install -g gulp
     $ npm install
     $ gulp
 
