@@ -31,6 +31,7 @@ html .abs { position: absolute; }
 /* Typography */
 html, table, .serif { font-family: 'Source Serif Pro', serif; font-size: 16px; line-height: 24px; }
 .sans, table { font-size: 14px; font-family: 'Lato', sans-serif; }
+#editor.ace_editor { margin: 0; }
 #editor.ace_editor, code, .mono { font-family: 'Source Code Pro', monospace; font-size: 90%; }
 .b { font-weight: bold; }
 .aa { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -96,6 +97,7 @@ html, .black { color: #333; }
 .yellow-bg { background: #eb4; }
 .red-bg { background: #e46; }
 .white { color: #fff; }
+.white-bg { background: #fff; box-shadow: #fff 0 10px 20px; transform: translateZ(0); }
 
 /* Markdown */
 h1, h2, h3, h4, h5, h6 { font-weight: 700; }
