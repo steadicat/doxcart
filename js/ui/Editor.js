@@ -19,8 +19,10 @@ var Editor = React.createClass({
     editor.setShowPrintMargin(false);
     editor.renderer.setShowGutter(false);
     editor.renderer.setPadding(32);
-    editor.session.setUseWrapMode(true);
-    editor.session.setTabSize(2);
+    editor.setOption('scrollPastEnd', 0.6);
+    editor.getSession().setUseWrapMode(true);
+    editor.getSession().setTabSize(2);
+    editor.getSession().setUseSoftTabs(true);
     editor.getSession().on('change', this.onChange);
     editor.setKeyboardHandler(this.props.data.keys ? ace.require('ace/keyboard/' + this.props.data.keys).handler : null);
   },
@@ -56,7 +58,7 @@ var Editor = React.createClass({
   render: function() {
     return (
       <div className="top fixed top right half-width full-height ptl bb border-left border-gray" style={{display: this.props.data.editing ? null : 'none'}}>
-        <pre id="editor" className="block full-height full-width">
+        <pre id="editor" className="block abs full-width top bottom">
           {this._initialText}
         </pre>
       </div>
