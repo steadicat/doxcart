@@ -3,6 +3,8 @@ var Nav = require('./Nav');
 var Search = require('./Search');
 
 var Sidebar = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
+
   render: function() {
     return (
       <div className="top left fixed full-height quarter-width scroll text-xs sans" style={{display: this.props.data.editing ? 'none' : null}}>

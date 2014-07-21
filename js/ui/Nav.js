@@ -24,6 +24,7 @@ function pathsToTree(links) {
 };
 
 var Nav = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   getInitialState: function() {
     return {expanded: this.getExpandedMap(this.loadExpandedMap(), this.props.data.path)};

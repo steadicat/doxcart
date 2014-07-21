@@ -13,6 +13,8 @@ var icons = {
 };
 
 var Icon = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
+
   render: function() {
     if (!this.props.icon) {
       return this.transferPropsTo(

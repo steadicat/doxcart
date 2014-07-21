@@ -2,6 +2,7 @@
 var cx = React.addons.classSet;
 
 var History = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   isCreation: function(i) {
     return (

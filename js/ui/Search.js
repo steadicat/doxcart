@@ -5,6 +5,7 @@ var ajax = require('../ajax');
 var SEARCH_DELAY = 200;
 
 var Search = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   onKeyUp: debounce(function() {
     var val = this.getDOMNode().value;

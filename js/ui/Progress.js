@@ -2,6 +2,7 @@
 var ajax = require('../ajax');
 
 var Progress = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   getInitialState: function() {
     return {progress: 0};
@@ -47,7 +48,7 @@ var Progress = React.createClass({
   },
 
   render: function() {
-    if (this.state.progress == 0) return <div/>;
+    if (this.state.progress == 0) return null;
     return (
       <div
         className="fixed top left blue-bg t-width"

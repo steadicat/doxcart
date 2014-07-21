@@ -4,6 +4,7 @@ var debounce = require('../debounce');
 var EDIT_DELAY = 200;
 
 var Editor = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   componentWillMount: function() {
     this._initialText = this.props.data.text;

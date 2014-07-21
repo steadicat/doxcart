@@ -1,6 +1,7 @@
 /** @jsx React.DOM **/
 
 var Toolbar = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   onEdit: function() {
     this.props.onEvent('editOn');

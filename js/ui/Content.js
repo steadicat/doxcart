@@ -3,6 +3,7 @@ var History = require('./History');
 var cx = React.addons.classSet;
 
 var Content = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   render: function() {
     return (

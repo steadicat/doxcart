@@ -7,6 +7,7 @@ var Toolbar = require('./Toolbar');
 var Progress = require('./Progress');
 
 var Home = React.createClass({
+  mixins: [React.addons.PureRenderMixin],
 
   update: function() {
     this.props.data.editing && this.props.onEvent('editOff');
