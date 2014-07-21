@@ -10,10 +10,10 @@ var Home = React.createClass({
 
   update: function() {
     this.props.data.editing && this.props.onEvent('editOff');
-    this.props.onEvent('docUpdate', {
+    this.props.onEvent('docUpdate', {doc: {
       title: this.props.data.title,
       text: this.props.data.changedByOthersText
-    });
+    }});
   },
 
   render: function() {
