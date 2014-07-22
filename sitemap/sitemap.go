@@ -31,6 +31,9 @@ func formatTitle(bit string) string {
   bit = strings.Title(bit)
   bit = strings.Replace(bit, "Ios", "iOS", -1)
   bit = strings.Replace(bit, "Css", "CSS", -1)
+  bit = strings.Replace(bit, " And ", " and ", -1)
+  bit = strings.Replace(bit, " A ", " a ", -1)
+  bit = strings.Replace(bit, "Javascript", "JavaScript", -1)
   return bit
 }
 
