@@ -1,5 +1,6 @@
 /** @jsx React.DOM **/
 var cookie = require('../cookie');
+var set = require('../set');
 var Icon = require('./Icon');
 var cx = React.addons.classSet;
 
@@ -36,40 +37,32 @@ var Nav = React.createClass({
 
   loadExpandedMap: function() {
     var paths = (cookie.get('expanded') || '').split('|');
-    var expanded = {};
-    for (var i = 0, l = paths.length; i < l; i++) {
-      expanded[paths[i]] = true;
-    }
-    return expanded;
+    return new set(paths);
   },
 
   saveExpandedMap: function(expanded) {
-    cookie.set('expanded', Object.keys(expanded).join('|'));
+    cookie.set('expanded', expanded.elements.join('|'));
   },
 
   getExpandedMap: function(expanded, path) {
     var bits = path.split('/');
     for (var i = 0, l = bits.length; i < l; i++) {
-      expanded[bits.slice(0, i+1).join('/') || '/'] = true;
+      expanded = expanded.add(bits.slice(0, i+1).join('/') || '/');
     }
     return expanded;
   },
 
   toggle: function(path, e) {
     e.preventDefault();
-    if (this.state.expanded[path]) {
-      delete this.state.expanded[path];
-    } else {
-      this.state.expanded[path] = true;
-    }
-    this.setState({expanded: this.state.expanded});
-    this.saveExpandedMap(this.state.expanded);
+    var expanded = this.state.expanded.contains(path) ? this.state.expanded.remove(path) : this.state.expanded.add(path);
+    this.setState({expanded: expanded});
+    this.saveExpandedMap(expanded);
   },
 
   countExpandedChildren: function(children) {
     if (!children || !children.length) return 0;
     return children.map(function(child) {
-      return 1 + (this.state.expanded[child.path] ? this.countExpandedChildren(child.children) : 0);
+      return 1 + (this.state.expanded.contains(child.path) ? this.countExpandedChildren(child.children) : 0);
     }.bind(this)).reduce(function(a,b) { return a+b }, 0);
   },
 
@@ -102,7 +95,7 @@ var Nav = React.createClass({
 
   renderChild: function(child) {
     var current = child.path == this.props.data.path;
-    var expanded = this.state.expanded[child.path];
+    var expanded = this.state.expanded.contains(child.path);
     var hasChildren = child.children && !!child.children.length;
     return (
       <li key={child.path} className="nobr">
