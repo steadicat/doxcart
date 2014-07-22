@@ -20,7 +20,7 @@ var Editor = React.createClass({
     editor.setShowPrintMargin(false);
     editor.renderer.setShowGutter(false);
     editor.renderer.setPadding(32);
-    editor.renderer.setScrollMargin(40, 40);
+    editor.renderer.setScrollMargin(46, 46);
     editor.setOption('scrollPastEnd', 0.6);
     editor.getSession().setUseWrapMode(true);
     editor.getSession().setTabSize(2);
