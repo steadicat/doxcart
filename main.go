@@ -43,6 +43,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if path != "/" {
 		path = strings.TrimRight(r.URL.Path, "/")
+		path = strings.ToLower(path)
 	}
 	if (path != r.URL.Path) {
 		http.Redirect(w, r, path, http.StatusMovedPermanently)
