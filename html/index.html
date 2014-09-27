@@ -2,7 +2,9 @@
   <head>
     <title>{{.Title}}</title>
     <link href="//fonts.googleapis.com/css?family=Lato:400,700|Source+Serif+Pro:700,400|Source+Code+Pro" rel="stylesheet" type="text/css" />
+    {{ if not .Dev }}
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    {{ end }}
     <link rel="stylesheet" type="text/css" href="/css/tomorrow.css">
   </head>
   <body class="full-height">
@@ -23,6 +25,10 @@
     <script defer src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/highlight.min.js"></script>
     <script defer src="/_ah/channel/jsapi"></script>
     <script>var data = {{.Data}};</script>
+    {{ if .Dev }}
+    <script defer src="http://localhost:8888/js/main.js"></script>
+    {{ else }}
     <script defer src="/js/main.js"></script>
+    {{ end }}
   </body>
 </html>

@@ -151,10 +151,12 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Title string
 		Html template.HTML
+		Dev bool
 		Data Data
 	}{
 		sitemap.GetTitle(r.URL.Path, domain),
 		html,
+		appengine.IsDevAppServer(),
 		Data {
 			sitemap.GetTitle(r.URL.Path, domain),
 			text,

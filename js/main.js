@@ -3,6 +3,7 @@ var ajax = require('./ajax');
 var marked = require('./marked');
 var cookie = require('./cookie');
 var Home = require('./ui/Home');
+//require('../css/main.css');
 
 window.history.pushState && document.body.addEventListener('click', function(e) {
   if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
