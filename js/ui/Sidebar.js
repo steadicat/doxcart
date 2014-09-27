@@ -7,9 +7,25 @@ var Sidebar = React.createClass({
 
   render: function() {
     return (
-      <div className="top left fixed full-height quarter-width scroll text-xs sans" style={{display: this.props.data.editing ? 'none' : null}}>
-        <div className="abs bottom left pam">
-          <div className="mbl">
+      <div className="top left fixed full-height quarter-width text-xs sans" style={{display: this.props.data.editing ? 'none' : null}}>
+          <div className="abs left" style={{top: 46, bottom: 100, right: 16}}>
+            <div className="full-height plm left right scroll">
+              <Nav
+                className="mts"
+                style={{marginLeft: -8}}
+                data={this.props.data}
+                onEvent={this.props.onEvent}
+              />
+            </div>
+        </div>
+        <div className="abs top left layer ptm plm prm white-bg" style={{right: 16}}>
+          <Search
+            data={this.props.data}
+            onEvent={this.props.onEvent}
+          />
+        </div>
+        <div className="abs bottom left pvm phm bb layer z1 white-bg-top" style={{right: 16}}>
+          <div className="mbm nobr">
             {this.props.data.dropbox &&
               <a href="/_/dropbox/disconnect">Disable Dropbox Sync</a>}
             {!this.props.data.dropbox &&
@@ -23,18 +39,7 @@ var Sidebar = React.createClass({
             </div>
           </div>
         </div>
-        <div className="plm prh mts">
-          <Search
-            data={this.props.data}
-            onEvent={this.props.onEvent}
-          />
-          <Nav
-            className="mts"
-            style={{marginLeft: -8}}
-            data={this.props.data}
-            onEvent={this.props.onEvent}
-          />
-        </div>
+
       </div>
     );
   }

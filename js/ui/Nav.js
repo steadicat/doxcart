@@ -77,10 +77,9 @@ var Nav = React.createClass({
     return (
       <ul
         className={cx({
-          'mlm':  !root,
-          'no-list': true,
-          't-all': true,
-          'crop': true
+          'pbl': root,
+          'mlm': !root,
+          'no-list t-all crop': true
         })}
         style={{
           height: expanded ? (this.countExpandedChildren(children) * 20) : 0,

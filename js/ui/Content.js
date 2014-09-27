@@ -8,18 +8,13 @@ var Content = React.createClass({
   render: function() {
     return (
       <div className={cx({
-        'top': true,
-        'left': true,
-        'fixed': true,
-        'full-width': !this.props.data.editing,
-        'half-width': this.props.data.editing,
-        'full-height': true,
-        'scroll': true
+        'fixed top left right full-height scroll': true,
+        '': !this.props.data.editing,
+        'half-width': this.props.data.editing
       })}>
         <div id="content" className={cx({
-          'pal': true,
-          'rel': true,
-          'centered': true,
+          'pvl rel centered': true,
+          'phl': this.props.data.editing,
           'half-width': !this.props.data.editing
         })}>
           <h1 className="mts">{this.props.data.title}</h1>
