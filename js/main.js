@@ -3,6 +3,8 @@ var ajax = require('./ajax');
 var marked = require('./marked');
 var cookie = require('./cookie');
 var Home = require('./ui/Home');
+var Data = require('./ui/Data');
+var Dispatcher = require('./ui/Dispatcher');
 //require('../css/main.css');
 
 window.history.pushState && document.body.addEventListener('click', function(e) {
@@ -27,17 +29,17 @@ function navigate(path, search, fromBackButton) {
   if (search.substring(0, 5) == '?rev=') {
     rev = search.substring(5);
   }
-  dispatcher('navigate', {path: path, history: history, rev: rev});
+  Dispatcher.dispatch('navigate', {path: path, history: history, rev: rev});
   !fromBackButton && window.history.pushState(null, null, path + search);
   if (history) {
     ajax.get(path + '?history', function(res) {
       if (!res.ok) return;
-      dispatcher('historyUpdate', res.versions);
+      Dispatcher.dispatch('historyUpdate', res.versions);
     });
   } else {
     ajax.get(path + search, function(res) {
       if (!res.ok) return;
-      dispatcher('docUpdate', {doc: res, rev: rev});
+      Dispatcher.dispatch('docUpdate', {doc: res, rev: rev});
       document.title = res.title;
     });
   }
@@ -59,81 +61,8 @@ marked.setOptions({
 
 var home;
 
-function update(change) {
-  home.setProps({data: window['data'] = React.addons.update(window['data'], change)});
-}
-
-function dispatcher(event, info) {
-  switch (event) {
-    case 'editOn':
-    return update({
-      editing: {$set: true},
-      changed: {$set: !!window['data'].rev}
-    });
-    case 'edit':
-    return update({
-      changed: {$set: true},
-      text: {$set: info},
-      html: {$set: marked(info)}
-    });
-    case 'editOff':
-    return update({editing: {$set: false}});
-    case 'save':
-    return ajax.put(window.location.pathname, {
-      text: window['data'].text,
-      html: marked(window['data'].text)
-    }, function(res) {
-      dispatcher('saved');
-      res.nav && dispatcher('navUpdate', res.nav);
-    });
-    case 'saved':
-    return update({
-      changed: {$set: false},
-      editing: {$set: false},
-      rev: {$set: null}
-    });
-    case 'navigate':
-    return update({
-      path: {$set: info.path},
-      history: {$set: info.history},
-      changed: {$set: false},
-      editing: {$set: false}
-    });
-    case 'search':
-    return update({
-      search: {$set: info}
-    });
-    case 'docUpdate':
-    return update({
-      title: {$set: info.doc.title},
-      text: {$set: info.doc.text},
-      html: {$set: marked(info.doc.text)},
-      rev: {$set: info.rev},
-      versions: {$set: []},
-      changedBy: {$set: null},
-      changedByOthersText: {$set: null}
-    });
-    case 'docUpdateByOthers':
-    if ((info.path === window['data'].path) && (info.text !== window['data'].text)) update({
-      changedBy: {$set: info.author},
-      changedByOthersText: {$set: info.text}
-    });
-    return;
-    case 'navUpdate':
-    return update({nav: {$set: info}});
-    case 'historyUpdate':
-    return update({
-      versions: {$set: info},
-      rev: {$set: null}
-    });
-    case 'setKeys':
-    info ? cookie.set('keys', info) : cookie.del('keys');
-    return update({keys: {$set: info}});
-  }
-}
-
 function main(initialData) {
-  window['data'] = React.addons.update(
+  Data.init(React.addons.update(
     initialData,
     {
       keys: {$set: cookie.get('keys')},
@@ -144,12 +73,9 @@ function main(initialData) {
       search: {$set: null},
       html: {$set: marked(initialData.text)}
     }
-  );
+  ));
   home = React.renderComponent(
-    <Home
-      data={window['data']}
-      onEvent={dispatcher}
-    />,
+    <Home />,
     document.getElementById('home')
   );
 
@@ -164,7 +90,7 @@ function main(initialData) {
     onmessage: function(m) {
       var msg = JSON.parse(m.data);
       if (msg.event == 'pageUpdate') {
-        dispatcher('docUpdateByOthers', msg.info);
+        Dispatcher.dispatch('docUpdateByOthers', msg.info);
       }
     },
     onerror: function() {

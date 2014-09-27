@@ -1,14 +1,16 @@
 /** @jsx React.DOM **/
 var debounce = require('../debounce');
+var DataMixin = require('./DataMixin');
+var Dispatcher = require('./Dispatcher');
 
 var EDIT_DELAY = 200;
 
 var Editor = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
+  mixins: [React.addons.PureRenderMixin, DataMixin],
 
   componentWillMount: function() {
-    this._initialText = this.props.data.text;
-    this._currentPath = this.props.data.path;
+    this._initialText = this.get('text');
+    this._currentPath = this.get('path');
   },
 
   componentDidMount: function() {
@@ -26,26 +28,26 @@ var Editor = React.createClass({
     editor.getSession().setTabSize(2);
     editor.getSession().setUseSoftTabs(true);
     editor.getSession().on('change', this.onChange);
-    editor.setKeyboardHandler(this.props.data.keys ? ace.require('ace/keyboard/' + this.props.data.keys).handler : null);
+    editor.setKeyboardHandler(this.get('keys') ? ace.require('ace/keyboard/' + this.get('keys')).handler : null);
   },
 
-  componentDidUpdate: function(prevProps) {
-    if (this.props.data.keys !== prevProps.data.keys) {
-      this.editor.setKeyboardHandler(this.props.data.keys ? ace.require('ace/keyboard/' + this.props.data.keys).handler : null);
+  componentDidUpdate: function(prevProps, prevState) {
+    if (this.get('keys') !== prevState.keys) {
+      this.editor.setKeyboardHandler(this.get('keys') ? ace.require('ace/keyboard/' + this.get('keys')).handler : null);
     }
-    if (prevProps.data.editing !== this.props.data.editing) {
+    if (prevState.editing !== this.get('editing')) {
       this.editor.resize();
     }
-    if ((this.props.data.text !== prevProps.data.text) && this.isNewDoc(prevProps)) {
-      this.editor.setValue(this.props.data.text, -1);
-      this._currentPath = this.props.data.path;
+    if ((this.get('text') !== prevState.text) && this.isNewDoc(prevState)) {
+      this.editor.setValue(this.get('text'), -1);
+      this._currentPath = this.get('path');
     }
   },
 
-  isNewDoc: function(prevProps) {
-    return (this.props.data.path !== this._currentPath) ||
-      (this.props.data.changedByOthersText !== prevProps.data.changedByOthersText) ||
-      (this.props.data.rev !== prevProps.data.rev);
+  isNewDoc: function(prevState) {
+    return (this.get('path') !== this._currentPath) ||
+      (this.get('changedByOthersText') !== prevState.changedByOthersText) ||
+      (this.get('rev') !== prevState.rev);
 ;
   },
 
@@ -54,12 +56,12 @@ var Editor = React.createClass({
   },
 
   onChangeDebounced: debounce(function() {
-    this.props.onEvent('edit', this.editor.getValue());
+    Dispatcher.dispatch('edit', this.editor.getValue());
   }, EDIT_DELAY),
 
   render: function() {
     return (
-      <div className="top fixed top right half-width full-height ptl bb border-left border-gray" style={{display: this.props.data.editing ? null : 'none'}}>
+      <div className="top fixed top right half-width full-height ptl bb border-left border-gray" style={{display: this.get('editing') ? null : 'none'}}>
         <div className="abs top bottom full-width">
         <pre id="editor" className="block abs full-width top bottom">
           {this._initialText}

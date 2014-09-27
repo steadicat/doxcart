@@ -2,6 +2,7 @@
 var cookie = require('../cookie');
 var set = require('../set');
 var Icon = require('./Icon');
+var DataMixin = require('./DataMixin');
 var cx = React.addons.classSet;
 
 function pathsToTree(links) {
@@ -25,14 +26,16 @@ function pathsToTree(links) {
 }
 
 var Nav = React.createClass({
-  mixins: [React.addons.PureRenderMixin],
+  mixins: [React.addons.PureRenderMixin, DataMixin],
 
   getInitialState: function() {
-    return {expanded: this.getExpandedMap(this.loadExpandedMap(), this.props.data.path)};
+    return {expanded: this.getExpandedMap(this.loadExpandedMap(), this.get('path'))};
   },
 
-  componentWillReceiveProps: function(nextProps) {
-    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.data.path)});
+  componentWillReceiveUpdate: function(key, val) {
+    if (key == 'path') {
+      this.setState({expanded: this.getExpandedMap(this.state.expanded, val)});
+    }
   },
 
   loadExpandedMap: function() {
@@ -67,7 +70,7 @@ var Nav = React.createClass({
   },
 
   render: function() {
-    var tree = this.props.data.search || [pathsToTree(this.props.data.nav)];
+    var tree = this.get('search') || [pathsToTree(this.get('nav'))];
     var children = this.renderChildren(tree, true, true);
     return children ? this.transferPropsTo(children) : <span/>;
   },
@@ -93,7 +96,7 @@ var Nav = React.createClass({
   },
 
   renderChild: function(child) {
-    var current = child.path == this.props.data.path;
+    var current = child.path == this.get('path');
     var expanded = this.state.expanded.contains(child.path);
     var hasChildren = child.children && !!child.children.length;
     return (
