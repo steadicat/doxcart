@@ -31,7 +31,7 @@ func Handle(c appengine.Context, w http.ResponseWriter, r *http.Request, path st
 		return
 	}
 
-	var history []HistoryVersion
+	var history []HistoryVersion = []HistoryVersion{};
 	for i, version := range versions {
 		history = append(history, HistoryVersion{
 			keys[i].IntID(),

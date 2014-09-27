@@ -22,7 +22,7 @@ function pathsToTree(links) {
     links[i].hasParent = true;
   }
   return byPath['/'];
-};
+}
 
 var Nav = React.createClass({
   mixins: [React.addons.PureRenderMixin],
@@ -32,7 +32,7 @@ var Nav = React.createClass({
   },
 
   componentWillReceiveProps: function(nextProps) {
-    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.data.path)})
+    this.setState({expanded: this.getExpandedMap(this.state.expanded, nextProps.data.path)});
   },
 
   loadExpandedMap: function() {

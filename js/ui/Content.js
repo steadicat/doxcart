@@ -30,7 +30,7 @@ var Content = React.createClass({
           {this.props.data.versions.length ? <History versions={this.props.data.versions} path={this.props.data.path} /> : null}
         </div>
       </div>
-    )
+    );
   }
 });
 

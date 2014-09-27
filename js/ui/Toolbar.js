@@ -23,8 +23,8 @@ var Toolbar = React.createClass({
     return (
       <div className={'fixed top right right-align bb sans text-xs phm half-width'}>
         <div className={'pts ' + (this.props.data.editing ? ' white-bg' : '')}>
-          {!this.props.data.editing && !this.props.data.history &&
-            <a className="phs" href="?history">History</a>}
+          {!this.props.data.editing && !this.props.data.history && this.props.data.versions.length ?
+            <a className="phs" href="?history">History</a> : null}
           {this.props.data.history &&
             <a className="phs" href={this.props.data.path}>Back</a>}
           {this.props.data.editing && !this.props.data.keys &&
