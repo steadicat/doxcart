@@ -63,9 +63,9 @@ var Editor = React.createClass({
     return (
       <div className="top fixed top right half-width full-height ptl bb border-left border-gray" style={{display: this.get('editing') ? null : 'none'}}>
         <div className="abs top bottom full-width">
-        <pre id="editor" className="block abs full-width top bottom">
-          {this._initialText}
-        </pre>
+          <pre id="editor" className="block abs full-width top bottom">
+            {this._initialText}
+          </pre>
         </div>
       </div>
     );
