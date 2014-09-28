@@ -28,7 +28,6 @@ Data.update = function(change) {
       subscription(key, window['data'][key]);
     });
   });
-  //home.setProps({data: window['data'] = React.addons.update(window['data'], change)});
-}
+};
 
 module.exports = Data;

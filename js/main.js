@@ -6,6 +6,10 @@ var Home = require('./ui/Home');
 var Data = require('./ui/Data');
 var Dispatcher = require('./ui/Dispatcher');
 //require('../css/main.css');
+var ReactBatchingStrategy = require('./batching');
+var ReactInjection = require('react/lib/ReactInjection');
+
+ReactInjection.Updates.injectBatchingStrategy(ReactBatchingStrategy);
 
 window.history.pushState && document.body.addEventListener('click', function(e) {
   if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
@@ -59,8 +63,6 @@ marked.setOptions({
   }
 });
 
-var home;
-
 function main(initialData) {
   Data.init(React.addons.update(
     initialData,
@@ -74,10 +76,7 @@ function main(initialData) {
       html: {$set: marked(initialData.text)}
     }
   ));
-  home = React.renderComponent(
-    <Home />,
-    document.getElementById('home')
-  );
+  React.renderComponent(<Home />, document.getElementById('home'));
 
   if (window.location.search) {
     navigate(initialData.path, window.location.search, true);

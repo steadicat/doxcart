@@ -21,9 +21,6 @@ function webpackConfig(debug) {
     resolve: {
       extensions: ['', '.js']
     },
-    externals: {
-      'react': 'window.React'
-    },
     output: {
       path: __dirname + '/build/js',
       filename: 'main.js',
@@ -31,8 +28,15 @@ function webpackConfig(debug) {
       publicPath: 'http://localhost:8888/js/'
     },
     plugins: debug ? [
-      new webpack.HotModuleReplacementPlugin()
-    ] : []
+      new webpack.HotModuleReplacementPlugin(),
+      new webpack.ProvidePlugin({
+        'React': 'react/addons'
+      })
+    ] : [
+      new webpack.ProvidePlugin({
+        'React': 'react/addons'
+      })
+    ]
   };
 }
 
