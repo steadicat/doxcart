@@ -7,7 +7,9 @@ import (
 
 func Get(c appengine.Context, key string) ([]byte, error) {
 	cache, err := memcache.Get(c, key)
-	if err != nil && err != memcache.ErrCacheMiss { return nil, err }
+	if err != nil && err != memcache.ErrCacheMiss {
+		return nil, err
+	}
 	if err != nil || cache == nil {
 		c.Infof("Cache miss: %v", key)
 		return nil, nil
@@ -19,7 +21,7 @@ func Get(c appengine.Context, key string) ([]byte, error) {
 func Set(c appengine.Context, key string, value []byte) error {
 	c.Infof("Caching: %v, %v", key, string(value))
 	return memcache.Set(c, &memcache.Item{
-		Key: key,
+		Key:   key,
 		Value: value,
 	})
 }

@@ -1,22 +1,22 @@
 package dropboxRead
 
 import (
-	"fmt"
-	"strings"
-	"bytes"
-	"io/ioutil"
-	"net/url"
-	"net/http"
-	"encoding/json"
 	"appengine"
-	"appengine/delay"
 	"appengine/datastore"
+	"appengine/delay"
 	"appengine/urlfetch"
-	"web"
-	"page"
+	"bytes"
 	"cache"
-	"sitemap"
 	"dropbox/common"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"page"
+	"sitemap"
+	"strings"
+	"web"
 )
 
 func Init() {
@@ -48,9 +48,9 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type DeltaResponse struct {
-	HasMore bool `json:"has_more"`
-	Reset bool `json:"reset"`
-	Cursor string `json:"cursor"`
+	HasMore bool          `json:"has_more"`
+	Reset   bool          `json:"reset"`
+	Cursor  string        `json:"cursor"`
 	Entries []interface{} `json:"entries"`
 }
 
@@ -60,7 +60,7 @@ var afterWebhook = delay.Func("AfterWebhook", func(c appengine.Context, userIds 
 
 		q := datastore.NewQuery("ServiceToken").Filter("Id =", fmt.Sprintf("%v", id)).Limit(1)
 		var tokens []dropboxCommon.ServiceToken
-	_, err := q.GetAll(c, &tokens)
+		_, err := q.GetAll(c, &tokens)
 		if err != nil {
 			c.Warningf("Error finding token for Dropbox user %v: %v", id, err.Error())
 			return
@@ -107,7 +107,7 @@ func fetchDelta(gc appengine.Context, domain string, serviceToken dropboxCommon.
 		c.Warningf("Error preparing request for /delta for Dropbox user %v: %v", domain, err.Error())
 		return false, ""
 	}
-	req.Header.Set("Authorization", "Bearer " + serviceToken.Token)
+	req.Header.Set("Authorization", "Bearer "+serviceToken.Token)
 	client := urlfetch.Client(c)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -163,10 +163,10 @@ func fetchDelta(gc appengine.Context, domain string, serviceToken dropboxCommon.
 		}
 
 		rev := metadata["rev"].(string)
-		res, err := cache.Get(gc, "dropbox:rev:" + rev)
+		res, err := cache.Get(gc, "dropbox:rev:"+rev)
 		if err != nil || res != nil {
-   		c.Infof("Ignoring seen rev %v", rev)
-   		cache.Clear(gc, "dropbox:rev:" + rev)
+			c.Infof("Ignoring seen rev %v", rev)
+			cache.Clear(gc, "dropbox:rev:"+rev)
 			continue
 		}
 
@@ -180,7 +180,7 @@ func fetchDelta(gc appengine.Context, domain string, serviceToken dropboxCommon.
 			c.Warningf("Error preparing request: %v", err.Error())
 			return false, ""
 		}
-		req.Header.Set("Authorization", "Bearer " + serviceToken.Token)
+		req.Header.Set("Authorization", "Bearer "+serviceToken.Token)
 		client := urlfetch.Client(c)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -211,7 +211,7 @@ func fetchDelta(gc appengine.Context, domain string, serviceToken dropboxCommon.
 
 	if !response.HasMore {
 
-		if (changed) {
+		if changed {
 			err = cache.Clear(c, "sitemap")
 			if err != nil {
 				c.Warningf("Error clearing sitemap cache: %v", err.Error())

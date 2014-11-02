@@ -1,24 +1,24 @@
 package history
 
 import (
-	"time"
-	"fmt"
-	"crypto/md5"
-	"net/http"
-	"encoding/json"
 	"appengine"
 	"appengine/datastore"
-	"web"
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"page"
+	"time"
+	"web"
 )
 
 type HistoryVersion struct {
-	Rev int64 `json:"rev"`
-	Path string `json:"path"`
-	Date time.Time `json:"date"`
-	Author string `json:"author"`
-	Gravatar string `json:"gravatar"`
-	Deleted bool `json:"deleted"`
+	Rev      int64     `json:"rev"`
+	Path     string    `json:"path"`
+	Date     time.Time `json:"date"`
+	Author   string    `json:"author"`
+	Gravatar string    `json:"gravatar"`
+	Deleted  bool      `json:"deleted"`
 }
 
 func Handle(c appengine.Context, w http.ResponseWriter, r *http.Request, path string) {
@@ -31,7 +31,7 @@ func Handle(c appengine.Context, w http.ResponseWriter, r *http.Request, path st
 		return
 	}
 
-	var history []HistoryVersion = []HistoryVersion{};
+	var history []HistoryVersion = []HistoryVersion{}
 	for i, version := range versions {
 		history = append(history, HistoryVersion{
 			keys[i].IntID(),
@@ -43,8 +43,8 @@ func Handle(c appengine.Context, w http.ResponseWriter, r *http.Request, path st
 		})
 	}
 
-	response := struct{
-		Ok bool `json:"ok"`
+	response := struct {
+		Ok       bool             `json:"ok"`
 		Versions []HistoryVersion `json:"versions"`
 	}{true, history}
 	encoder := json.NewEncoder(w)

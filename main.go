@@ -1,23 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-	"net/http"
-	"crypto/md5"
-	"encoding/json"
-	"html/template"
 	"appengine"
 	"appengine/user"
-	"github.com/mjibson/appstats"
+	"crypto/md5"
 	"dropbox/common"
 	"dropbox/read"
 	"dropbox/write"
-	"sitemap"
-	"page"
-	"web"
+	"encoding/json"
+	"fmt"
+	"github.com/mjibson/appstats"
 	"history"
+	"html/template"
+	"net/http"
+	"page"
 	"pubsub"
+	"sitemap"
+	"strings"
+	"web"
 )
 
 func init() {
@@ -32,8 +32,10 @@ func init() {
 var homeTemplate = template.Must(template.ParseFiles("html/index.html"))
 
 func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
-	c, domain, done := web.Auth(c, w, r);
-	if done == true { return }
+	c, domain, done := web.Auth(c, w, r)
+	if done == true {
+		return
+	}
 
 	if r.Method == "PUT" {
 		save(c, w, r)
@@ -45,7 +47,7 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		path = strings.TrimRight(r.URL.Path, "/")
 		path = strings.ToLower(path)
 	}
-	if (path != r.URL.Path) {
+	if path != r.URL.Path {
 		http.Redirect(w, r, path, http.StatusMovedPermanently)
 		return
 	}
@@ -64,10 +66,10 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 			web.ErrorJson(c, w, err)
 			return
 		}
-		response := struct{
-			Ok bool `json:"ok"`
-			Text string `json:"text"`
-			Html string `json:"html"`
+		response := struct {
+			Ok    bool   `json:"ok"`
+			Text  string `json:"text"`
+			Html  string `json:"html"`
 			Title string `json:"title"`
 		}{true, text, string(html), sitemap.GetTitle(path, domain)}
 		encoder := json.NewEncoder(w)
@@ -130,34 +132,34 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = pubsub.Sub(c, email, "page:" + path)
+	err = pubsub.Sub(c, email, "page:"+path)
 	if err != nil {
 		web.ErrorPage(c, w, err)
 		return
 	}
 
 	type Data struct {
-		Title string `json:"title"`
-		Text string `json:"text"`
-		Path string `json:"path"`
-		LogoutUrl string `json:"logoutUrl"`
-		Nav []sitemap.NavLink `json:"nav"`
-		User string `json:"user"`
-		Gravatar string `json:"gravatar"`
-		Dropbox bool `json:"dropbox"`
-		Token string `json:"token"`
+		Title     string            `json:"title"`
+		Text      string            `json:"text"`
+		Path      string            `json:"path"`
+		LogoutUrl string            `json:"logoutUrl"`
+		Nav       []sitemap.NavLink `json:"nav"`
+		User      string            `json:"user"`
+		Gravatar  string            `json:"gravatar"`
+		Dropbox   bool              `json:"dropbox"`
+		Token     string            `json:"token"`
 	}
 
 	data := struct {
 		Title string
-		Html template.HTML
-		Dev bool
-		Data Data
+		Html  template.HTML
+		Dev   bool
+		Data  Data
 	}{
 		sitemap.GetTitle(r.URL.Path, domain),
 		html,
 		appengine.IsDevAppServer(),
-		Data {
+		Data{
 			sitemap.GetTitle(r.URL.Path, domain),
 			text,
 			path,
@@ -216,14 +218,14 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	type Info struct {
-		Path string `json:"path"`
-		Text string `json:"text"`
+		Path   string `json:"path"`
+		Text   string `json:"text"`
 		Author string `json:"author"`
 	}
 	c.Infof("Publishing pageUpdate: %v", r.URL.Path)
-	err = pubsub.Pub(c, "page:" + r.URL.Path, struct{
+	err = pubsub.Pub(c, "page:"+r.URL.Path, struct {
 		Event string `json:"event"`
-		Info Info `json:"info"`
+		Info  Info   `json:"info"`
 	}{"pageUpdate", Info{
 		r.URL.Path,
 		body.Text,
@@ -234,8 +236,8 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct{
-		Ok bool `json:"ok"`
+	response := struct {
+		Ok  bool              `json:"ok"`
 		Nav []sitemap.NavLink `json:"nav"`
 	}{true, nav}
 	encoder := json.NewEncoder(w)
@@ -243,8 +245,10 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchHandler(c appengine.Context, w http.ResponseWriter, r *http.Request) {
-	c, _, done := web.Auth(c, w, r);
-	if done == true { return }
+	c, _, done := web.Auth(c, w, r)
+	if done == true {
+		return
+	}
 
 	r.ParseForm()
 	results, err := sitemap.Search(c, r.Form["q"][0])
