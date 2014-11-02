@@ -30,7 +30,6 @@ var Progress = React.createClass({
   },
 
   end: function() {
-    if (this.state.progress == 0) return;
     this.setProgress(1);
     this._timeout = setTimeout(this.clear, 200);
   },
