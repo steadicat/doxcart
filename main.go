@@ -220,6 +220,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		Text string `json:"text"`
 		Author string `json:"author"`
 	}
+	c.Infof("Publishing pageUpdate: %v", r.URL.Path)
 	err = pubsub.Pub(c, "page:" + r.URL.Path, struct{
 		Event string `json:"event"`
 		Info Info `json:"info"`

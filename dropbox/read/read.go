@@ -87,8 +87,8 @@ var afterWebhook = delay.Func("AfterWebhook", func(c appengine.Context, userIds 
 	}
 })
 
-func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.ServiceToken, cursor string) (bool, string) {
-	c, err := appengine.Namespace(c, domain)
+func fetchDelta(gc appengine.Context, domain string, serviceToken dropboxCommon.ServiceToken, cursor string) (bool, string) {
+	c, err := appengine.Namespace(gc, domain)
 	if err != nil {
 		c.Warningf("Error switching to namespace %v: %v", domain, err.Error())
 		return false, ""
@@ -159,6 +159,14 @@ func fetchDelta(c appengine.Context, domain string, serviceToken dropboxCommon.S
 
 		metadata := pair[1].(map[string]interface{})
 		if metadata["is_dir"] == true {
+			continue
+		}
+
+		rev := metadata["rev"].(string)
+		res, err := cache.Get(gc, "dropbox:rev:" + rev)
+		if err != nil || res != nil {
+   		c.Infof("Ignoring seen rev %v", rev)
+   		cache.Clear(gc, "dropbox:rev:" + rev)
 			continue
 		}
 
