@@ -20,9 +20,10 @@ skip_files:
 - ^(.*/)?.*/RCS/.*$
 - ^(.*/)?\..*$
 - ^js/.*$
-- ^(.*/)?node_modules/.*$
-- ^(.*/)?gulpfile\.js$
-- ^(.*/)?package\.json$
+- ^node_modules/.*$
+- ^gopath/.*$
+- ^gulpfile\.js$
+- ^package\.json$
 - ^(.*/)?README\.md$
-- ^(.*/)?.*\.sublime-project$
-- ^(.*/)?.*\.sublime-workspace$
+- ^.*\.sublime-project$
+- ^.*\.sublime-workspace$

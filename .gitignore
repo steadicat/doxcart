@@ -2,3 +2,4 @@
 /config/config.go
 /node_modules/
 /build/
+/gopath/
