@@ -31,8 +31,16 @@ func GetToken(c appengine.Context, client string) (string, error) {
 func Sub(c appengine.Context, client string, channelName string) error {
 	subs, err := getSubs(c, channelName)
 	if err != nil { return err }
-	subs = append(subs, client)
-	return setSubs(c, channelName, subs)
+	set := make(map[string]bool)
+	for _, sub := range subs {
+	  set[sub] = true
+	}
+	set[client] = true
+	keys := make([]string, 0, len(set))
+  for k := range set {
+    keys = append(keys, k)
+  }
+	return setSubs(c, channelName, keys)
 }
 
 func Pub(c appengine.Context, channelName string, value interface{}) error {
