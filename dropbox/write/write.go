@@ -116,25 +116,30 @@ func disconnectHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func clearToken(c appengine.Context, token string) error {
+func clearToken(c appengine.Context, token string) (err error) {
 	u := "https://api.dropbox.com/1/disable_access_token"
 	c.Infof("Posting to %v", u)
 	req, err := http.NewRequest("POST", u, bytes.NewBufferString(""))
-	if err != nil { return err }
+	if err != nil { return }
 	req.Header.Set("Authorization", "Bearer " + token)
 	client := urlfetch.Client(c)
 	resp, err := client.Do(req)
-	if err != nil { return err }
+	if err != nil { return }
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil { return err }
+	if err != nil { return }
 	c.Infof("Got %v", string(body))
 
 	domain := web.GetDomain(c)
 	err = cache.Clear(c, "dropbox:" + domain)
-	if err != nil { return err }
-	err = datastore.Delete(c, datastore.NewKey(c, "ServiceToken", web.GetDomain(c) + "/dropbox", 0, nil))
-	if err == datastore.ErrNoSuchEntity { return nil }
-	return err
+	if err != nil { return }
+
+	gc, err := appengine.Namespace(c, "")
+	if err != nil { return }
+	err = datastore.Delete(c, datastore.NewKey(gc, "ServiceToken", domain + "/dropbox", 0, nil))
+	if err == datastore.ErrNoSuchEntity {
+		err = nil
+	}
+	return
 }
 
 func SaveFile(c appengine.Context, domain string, path string, content string) error {
