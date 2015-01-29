@@ -128,14 +128,13 @@ func root(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 	email := user.Current(c).Email
 	channelToken, err := pubsub.GetToken(c, email)
 	if err != nil {
-		web.ErrorPage(c, w, err)
-		return
+		c.Warningf("Error creating channel for user: %v", email)
+		channelToken = ""
 	}
 
 	err = pubsub.Sub(c, email, "page:"+path)
 	if err != nil {
-		web.ErrorPage(c, w, err)
-		return
+		c.Warningf("Error subscribing to channel page:%v", path)
 	}
 
 	type Data struct {
@@ -232,8 +231,7 @@ func save(c appengine.Context, w http.ResponseWriter, r *http.Request) {
 		u.Email,
 	}})
 	if err != nil {
-		web.ErrorPage(c, w, err)
-		return
+		c.Warningf("Error publishing to channel page:%v", r.URL.Path)
 	}
 
 	response := struct {

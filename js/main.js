@@ -82,21 +82,23 @@ function main(initialData) {
     navigate(initialData.path, window.location.search, true);
   }
 
-  var channel = new goog.appengine.Channel(initialData.token);
-  channel.open({
-    onopen: function() {
-    },
-    onmessage: function(m) {
-      var msg = JSON.parse(m.data);
-      if (msg.event == 'pageUpdate') {
-        Dispatcher.dispatch('docUpdateByOthers', msg.info);
+  if (initialData.token.length) {
+    var channel = new goog.appengine.Channel(initialData.token);
+    channel.open({
+      onopen: function() {
+      },
+      onmessage: function(m) {
+        var msg = JSON.parse(m.data);
+        if (msg.event == 'pageUpdate') {
+          Dispatcher.dispatch('docUpdateByOthers', msg.info);
+        }
+      },
+      onerror: function() {
+      },
+      onclose: function() {
       }
-    },
-    onerror: function() {
-    },
-    onclose: function() {
-    }
-  });
+    });
+  }
 
 }
 
